@@ -4,6 +4,9 @@ import org.apache.guacamole.GuacamoleException;
 import org.apache.guacamole.net.event.AuthenticationFailureEvent;
 import org.apache.guacamole.net.event.AuthenticationSuccessEvent;
 import org.apache.guacamole.net.event.listener.Listener;
+import org.apache.guacamole.environment.Environment;
+import org.apache.guacamole.environment.LocalEnvironment;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,10 +17,19 @@ import java.io.InputStreamReader;
 /**
  * A Listener that logs authentication success and failure events.
  */
-public class TutorialListener implements Listener {
+public class CreateVNCListener implements Listener {
 
     private static final Logger logger =
-	LoggerFactory.getLogger(TutorialListener.class);
+	LoggerFactory.getLogger(CreateVNCListener.class);
+
+    /**
+     * Guacamole server environment.
+     */
+    private final Environment environment;
+
+    public CreateVNCListener() throws GuacamoleException {
+	environment = new LocalEnvironment();
+    }
 
     @Override
     public void handleEvent(Object event) throws GuacamoleException {
@@ -27,7 +39,7 @@ public class TutorialListener implements Listener {
 			((AuthenticationSuccessEvent) event)
 			.getCredentials().getUsername());
 	    try {
-		String cmd = "/etc/guacamole/update-vnc-list " + ((AuthenticationSuccessEvent) event).getCredentials().getUsername();
+		String cmd = environment.getGuacamoleHome() + "/update-vnc-list " + ((AuthenticationSuccessEvent) event).getCredentials().getUsername();
 		logger.info("Running: " + cmd);
 		Runtime run = Runtime.getRuntime();
 		Process pr = run.exec(cmd);
