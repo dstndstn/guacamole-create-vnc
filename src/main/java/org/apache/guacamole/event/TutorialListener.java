@@ -7,27 +7,46 @@ import org.apache.guacamole.net.event.listener.Listener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+
+
 /**
  * A Listener that logs authentication success and failure events.
  */
 public class TutorialListener implements Listener {
 
-        private static final Logger logger =
-	    LoggerFactory.getLogger(TutorialListener.class);
+    private static final Logger logger =
+	LoggerFactory.getLogger(TutorialListener.class);
 
-        @Override
-	public void handleEvent(Object event) throws GuacamoleException {
+    @Override
+    public void handleEvent(Object event) throws GuacamoleException {
 
-	    if (event instanceof AuthenticationSuccessEvent) {
-		logger.info("XXX successful authentication for user {}",
-			    ((AuthenticationSuccessEvent) event)
-			    .getCredentials().getUsername());
-	    }
-	    else if (event instanceof AuthenticationFailureEvent) {
-		logger.info("XXX failed authentication for user {}",
-			    ((AuthenticationFailureEvent) event)
-			    .getCredentials().getUsername());
+	if (event instanceof AuthenticationSuccessEvent) {
+	    logger.info("Successful authentication for user {}",
+			((AuthenticationSuccessEvent) event)
+			.getCredentials().getUsername());
+	    try {
+		String cmd = "/etc/guacamole/update-vnc-list.sh " + ((AuthenticationSuccessEvent) event).getCredentials().getUsername();
+		logger.info("Running: " + cmd);
+		Runtime run = Runtime.getRuntime();
+		Process pr = run.exec(cmd);
+		//logger.info("Process: " + pr.toString());
+		int rtn = pr.waitFor();
+		logger.info("Return value " + String.valueOf(rtn));
+		BufferedReader buf = new BufferedReader(new InputStreamReader(pr.getInputStream()));
+		String line = "";
+		while ((line=buf.readLine())!=null)
+		    logger.info(line);
+	    } catch (Exception e) {
+		logger.info("Failed to run update-vnc-list.sh -- ");
+		logger.info(e.toString());
 	    }
 	}
-
+	else if (event instanceof AuthenticationFailureEvent) {
+	    logger.info("Failed authentication for user {}",
+			((AuthenticationFailureEvent) event)
+			.getCredentials().getUsername());
+	}
+    }
 }
