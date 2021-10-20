@@ -2,11 +2,11 @@
 
     "guacamoleVersion" : "1.3.0",
 
-    "name"      : "Tutorial Listener Extension",
-    "namespace" : "guac-listener-tutorial",
+    "name"      : "Create VNC Extension",
+    "namespace" : "guac-listener",
 
     "listeners" : [
-        "org.apache.guacamole.event.TutorialListener"
+        "org.apache.guacamole.event.CreateVNCListener"
     ]
 
 }
