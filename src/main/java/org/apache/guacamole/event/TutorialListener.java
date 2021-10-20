@@ -27,7 +27,7 @@ public class TutorialListener implements Listener {
 			((AuthenticationSuccessEvent) event)
 			.getCredentials().getUsername());
 	    try {
-		String cmd = "/etc/guacamole/update-vnc-list.sh " + ((AuthenticationSuccessEvent) event).getCredentials().getUsername();
+		String cmd = "/etc/guacamole/update-vnc-list " + ((AuthenticationSuccessEvent) event).getCredentials().getUsername();
 		logger.info("Running: " + cmd);
 		Runtime run = Runtime.getRuntime();
 		Process pr = run.exec(cmd);
