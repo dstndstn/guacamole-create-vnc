@@ -22,3 +22,6 @@ sudo cp scripts/update-vnc-list /etc/guacamole
 sudo cp scripts/start-vnc.py /etc/guacamole
 ```
 
+License
+-------
+Copyright Dustin Lang 2021.  Apache license (see src/licenses/LICENSE)
