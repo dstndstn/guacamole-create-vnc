@@ -1,0 +1,3 @@
+grant codeBase "file:/etc/guacamole/extensions/guacamole-create-vnc-1.3.0.jar" {
+permission java.security.AllPermission;
+};
