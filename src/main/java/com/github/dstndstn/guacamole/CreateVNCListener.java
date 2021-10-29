@@ -6,6 +6,7 @@ import org.apache.guacamole.net.event.AuthenticationSuccessEvent;
 import org.apache.guacamole.net.event.listener.Listener;
 import org.apache.guacamole.environment.Environment;
 import org.apache.guacamole.environment.LocalEnvironment;
+import org.apache.guacamole.properties.StringGuacamoleProperty;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +28,12 @@ public class CreateVNCListener implements Listener {
      */
     private final Environment environment;
 
+    public static StringGuacamoleProperty UPDATE_VNC_LIST = new StringGuacamoleProperty()
+        {
+            @Override
+            public String getName() { return "update-vnc-list"; }
+        };
+
     public CreateVNCListener() throws GuacamoleException {
 	environment = new LocalEnvironment();
     }
@@ -38,9 +45,15 @@ public class CreateVNCListener implements Listener {
 	    logger.info("Successful authentication for user {}",
 			((AuthenticationSuccessEvent) event)
 			.getCredentials().getUsername());
+            String updatevnclist = environment.getProperty(UPDATE_VNC_LIST);
+            if (updatevnclist == null) {
+                updatevnclist = environment.getGuacamoleHome() + "/update-vnc-list";
+            } else if (!updatevnclist.startsWith("/")) {
+                updatevnclist = environment.getGuacamoleHome() + "/" + updatevnclist;
+            }
+            String cmd = updatevnclist + " " + ((AuthenticationSuccessEvent) event).getCredentials().getUsername();
+            logger.info("Running: " + cmd);
 	    try {
-		String cmd = environment.getGuacamoleHome() + "/update-vnc-list " + ((AuthenticationSuccessEvent) event).getCredentials().getUsername();
-		logger.info("Running: " + cmd);
 		Runtime run = Runtime.getRuntime();
 		Process pr = run.exec(cmd);
 		//logger.info("Process: " + pr.toString());
@@ -51,7 +64,7 @@ public class CreateVNCListener implements Listener {
 		while ((line=buf.readLine())!=null)
 		    logger.info(line);
 	    } catch (Exception e) {
-		logger.info("Failed to run update-vnc-list.sh -- ");
+		logger.info("Failed to run " + updatevnclist + ":");
 		logger.info(e.toString());
 	    }
 	}
