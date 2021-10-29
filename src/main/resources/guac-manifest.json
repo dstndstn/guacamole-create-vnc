@@ -6,7 +6,7 @@
     "namespace" : "guac-listener",
 
     "listeners" : [
-        "org.apache.guacamole.event.CreateVNCListener"
+        "com.github.dstndstn.guacamole.CreateVNCListener"
     ]
 
 }

@@ -1,4 +1,4 @@
-package org.apache.guacamole.event;
+package com.github.dstndstn.guacamole;
 
 import org.apache.guacamole.GuacamoleException;
 import org.apache.guacamole.net.event.AuthenticationFailureEvent;
