@@ -19,7 +19,8 @@ Copy that file into place, along with support scripts
 ```
 sudo cp target/guacamole-create-vnc-1.3.0.jar /etc/guacamole/extensions
 sudo cp scripts/update-vnc-list /etc/guacamole
-sudo cp scripts/start-vnc.py /etc/guacamole
+sudo cp scripts/start-vnc /etc/guacamole
+sudo cp scripts/guacamole-sudoers /etc/sudoers.d/guacamole
 ```
 
 License
