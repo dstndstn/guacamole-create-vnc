@@ -15,6 +15,10 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
 
+
+//public class CreateVNCProperties {
+//}
+
 /**
  * A Listener that logs authentication success and failure events.
  */
