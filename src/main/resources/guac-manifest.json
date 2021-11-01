@@ -1,12 +1,10 @@
 {
-
     "guacamoleVersion" : "1.3.0",
 
     "name"      : "Create VNC Extension",
-    "namespace" : "guac-listener",
+    "namespace" : "guacamole-create-vnc",
 
-    "listeners" : [
-        "com.github.dstndstn.guacamole.CreateVNCListener"
+    "authProviders" : [
+        "com.github.dstndstn.guacamole.CreateVNCAuthenticator"
     ]
-
 }

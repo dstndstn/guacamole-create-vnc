@@ -1,2 +1,5 @@
 Cmnd_Alias STARTVNC = /etc/guacamole/start-vnc
-tomcat ALL=(ALL:ALL) NOPASSWD:SETENV:STARTVNC
+create-vnc ALL=(ALL:ALL) NOPASSWD:SETENV:STARTVNC
+
+Cmnd_Alias LISTVNC = /etc/guacamole/list-vnc
+tomcat ALL=(ALL:ALL) NOPASSWD:SETENV:LISTVNC
