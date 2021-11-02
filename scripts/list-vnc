@@ -1,0 +1,36 @@
+#! /usr/bin/python3
+import sys
+import os
+import subprocess
+import psutil
+
+cmd = ['/usr/bin/vncserver', '-list', '-cleanstale']
+p = subprocess.run(cmd, stdout=subprocess.PIPE)
+#print('Return code from vncserver -list:', p.returncode, 'stdout', p.stdout)
+
+s = p.stdout.decode()
+lines = s.split('\n')
+lines = [line for line in lines if line.startswith(':')]
+# TigerVNC server sessions:
+#
+# X DISPLAY #    PROCESS ID
+# :1             24395 (stale)
+
+for line in lines:
+    words = line.split()
+    pid = int(words[1])
+    try:
+        p = psutil.Process(pid)
+    except:
+        print('Failed to find PID', pid)
+        continue
+    #print('VNC', words)
+    cmd = p.cmdline()
+    #print('cmdline:', cmd)
+    guac = False
+    for word in cmd:
+        #print('Cmdline: ', word)
+        if word.endswith('passwd-guac'):
+            #print('PASSWD-GUAC!')
+            guac = True
+    print('%s %s' % (words[0], 'T' if guac else 'F'))
