@@ -39,8 +39,7 @@ import org.jvnet.libpam.UnixUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class CreateVNCAuthenticator extends //AbstractAuthenticationProvider {
-    SimpleAuthenticationProvider {
+public class CreateVNCAuthenticator extends SimpleAuthenticationProvider {
 
     private final Logger logger = LoggerFactory.getLogger(CreateVNCAuthenticator.class);
     private final Environment environment;
@@ -123,6 +122,8 @@ public class CreateVNCAuthenticator extends //AbstractAuthenticationProvider {
             conf.setParameter("username", username);
             conf.setParameter("password", password);
             configs.put("SSH", conf);
+            // We used to ssh as a special system user that could sudo... but we've got the user's
+            // username & password, so we can just do it directly...
             // try {
             //     conf = new GuacamoleConfiguration();
             //     conf.setProtocol("ssh");
@@ -144,6 +145,8 @@ public class CreateVNCAuthenticator extends //AbstractAuthenticationProvider {
             conf.setParameter("password", password);
             conf.setParameter("command", "/bin/bash --norc --noprofile -i " + environment.getGuacamoleHome() + "/start-vnc");
             configs.put("Create a new Remote Desktop (VNC)", conf);
+
+
             
             // Find VNC sessions for this user.
             try {
@@ -184,6 +187,59 @@ public class CreateVNCAuthenticator extends //AbstractAuthenticationProvider {
             } catch (IOException e) {
                 logger.info("CreateVNCAuthenticator: failed to list VNC sessions: " + e.toString());
             }
+
+
+            conf = new GuacamoleConfiguration();
+            conf.setProtocol("ssh");
+            conf.setParameter("hostname", "localhost");
+            conf.setParameter("username", username);
+            conf.setParameter("password", password);
+            conf.setParameter("command", "/bin/bash --norc -i " + environment.getGuacamoleHome() + "/launch-vnc");
+            configs.put("Launch a new Remote Desktop (VNC)", conf);
+
+            // Find Remote VNC sessions for this user.
+            try {
+                Process process = Runtime.getRuntime().exec(environment.getGuacamoleHome() + "/list-vnc-for " + username + " --remote");
+                BufferedReader r =  new BufferedReader(new InputStreamReader(process.getInputStream()));
+                String line = null;
+                while((line=r.readLine())!=null) {
+                    //logger.info("Found VNC entry: " + line);
+                    String[] words = line.split(" ");
+                    if (words.length < 3)
+                        continue;
+                    String port = words[0];
+                    if (!port.startsWith(":"))
+                        continue;
+                    port = port.substring(1);
+                    //logger.info("Trimmed port to: " + port);
+                    int portnum = Integer.parseInt(port);
+                    boolean guac = words[1].equals("T");
+                    String host = words[2];
+                    conf = new GuacamoleConfiguration();
+                    conf.setProtocol("vnc");
+                    // FIXME
+                    conf.setParameter("hostname", host);
+                    conf.setParameter("port", Integer.toString(portnum + 5900));
+                    if (guac) {
+                        conf.setParameter("password", "GUAC");
+                    }
+                    configs.put("Connect to Remote Desktop on cn001 #" + port, conf);
+
+                    // conf = new GuacamoleConfiguration();
+                    // conf.setProtocol("ssh");
+                    // conf.setParameter("hostname", "localhost");
+                    // conf.setParameter("username", username);
+                    // conf.setParameter("password", password);
+                    // conf.setParameter("command", "/bin/bash --norc --noprofile -i " + environment.getGuacamoleHome() + "/stop-vnc " + port);
+                    // configs.put("Kill Remote Desktop #" + port, conf);
+
+                }
+            } catch (IOException e) {
+                logger.info("CreateVNCAuthenticator: failed to list VNC sessions: " + e.toString());
+            }
+
+
+
             return configs;
         }
     }
