@@ -8,16 +8,28 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.guacamole.GuacamoleException;
 import org.apache.guacamole.environment.Environment;
 import org.apache.guacamole.environment.LocalEnvironment;
-import org.apache.guacamole.net.auth.simple.SimpleAuthenticationProvider;
-import org.apache.guacamole.net.auth.Credentials;
 import org.apache.guacamole.protocol.GuacamoleConfiguration;
-
+import org.apache.guacamole.net.auth.Credentials;
+import org.apache.guacamole.net.auth.UserContext;
 import org.apache.guacamole.net.auth.AuthenticatedUser;
 import org.apache.guacamole.net.auth.Credentials;
+import org.apache.guacamole.net.auth.AuthenticationProvider;
+import org.apache.guacamole.net.auth.Connection;
+import org.apache.guacamole.net.auth.Directory;
+import org.apache.guacamole.net.auth.User;
+import org.apache.guacamole.net.auth.AbstractUserContext;
+import org.apache.guacamole.net.auth.permission.ObjectPermissionSet;
+import org.apache.guacamole.net.auth.simple.SimpleAuthenticationProvider;
+import org.apache.guacamole.net.auth.simple.SimpleUserContext;
+import org.apache.guacamole.net.auth.simple.SimpleDirectory;
+import org.apache.guacamole.net.auth.simple.SimpleConnection;
+import org.apache.guacamole.net.auth.simple.SimpleUser;
+import org.apache.guacamole.net.auth.simple.SimpleObjectPermissionSet;
 
 import org.jvnet.libpam.PAM;
 import org.jvnet.libpam.PAMException;
@@ -41,120 +53,140 @@ public class CreateVNCAuthenticator extends SimpleAuthenticationProvider {
         return "create-vnc";
     }
 
-    //private UserMapping getUserMapping() {
-    //}
-    private Map<String, GuacamoleConfiguration> getUserConfigs(String username) {
-        logger.info("CreateVNCAuthenticator: getUserConfigs() for " + username);
-        Map<String,GuacamoleConfiguration> configs = new HashMap<String, GuacamoleConfiguration>();
+    /* We need to create our own UserContext that dynamically
+     * generates the list of Connections available to each user.
+     *
+     * Because Reasons, SimpleUserContext is not subclassable for our
+     * purposes, hence this copy-n-edit.
+     */
+    private class CreateVNCUserContext extends AbstractUserContext {
+        private final Logger logger = LoggerFactory.getLogger(CreateVNCUserContext.class);
 
-        GuacamoleConfiguration conf = new GuacamoleConfiguration();
-        conf.setProtocol("ssh");
-        conf.setParameter("hostname", "localhost");
-        conf.setParameter("username", username);
-        configs.put("SSH", conf);
+        private final AuthenticationProvider authProvider;
+        private final String username;
+        private final boolean interpretTokens;
+        public CreateVNCUserContext(AuthenticationProvider authProvider,
+                                    String username) {
+            this.authProvider = authProvider;
+            this.username = username;
+            this.interpretTokens = true;
+        }
+        @Override
+        public User self() {
+            return new SimpleUser(username) {
+                @Override
+                public ObjectPermissionSet getConnectionGroupPermissions() throws GuacamoleException {
+                    return new SimpleObjectPermissionSet(getConnectionDirectory().getIdentifiers());
+                }
+                @Override
+                public ObjectPermissionSet getConnectionPermissions() throws GuacamoleException {
+                    return new SimpleObjectPermissionSet(getConnectionGroupDirectory().getIdentifiers());
+                }
+            };
+        }
+        @Override
+        public Object getResource() throws GuacamoleException {
+            return null;
+        }
+        @Override
+        public AuthenticationProvider getAuthenticationProvider() {
+            return authProvider;
+        }
+        @Override
+        public Directory<Connection> getConnectionDirectory()
+            throws GuacamoleException {
+            logger.info("getConnectionDirectory() for " + username);
+            Map<String, GuacamoleConfiguration> configs = getUserConfigs(username);
+            Map<String, Connection> connections = new ConcurrentHashMap<String, Connection>(configs.size());
+            for (Map.Entry<String, GuacamoleConfiguration> configEntry : configs.entrySet()) {
+                String identifier = configEntry.getKey();
+                GuacamoleConfiguration config = configEntry.getValue();
+                Connection connection = new SimpleConnection(identifier, identifier, config, interpretTokens);
+                connection.setParentIdentifier(DEFAULT_ROOT_CONNECTION_GROUP);
+                connections.put(identifier, connection);
+            }
+            return new SimpleDirectory<Connection>(connections);
+        }
 
-        try {
-            conf = new GuacamoleConfiguration();
+        public Map<String, GuacamoleConfiguration> getUserConfigs(String username,
+                                                                  String password) {
+            //logger.info("CreateVNCAuthenticator: getUserConfigs() for " + username);
+            Map<String,GuacamoleConfiguration> configs = new HashMap<String, GuacamoleConfiguration>();
+            GuacamoleConfiguration conf = new GuacamoleConfiguration();
             conf.setProtocol("ssh");
             conf.setParameter("hostname", "localhost");
-            conf.setParameter("username", "create-vnc");
-            Path privkeyfilename = Paths.get(environment.getGuacamoleHome() + "/create-vnc/id_createvnc");
-            String privkey = Files.readString(privkeyfilename);
-            conf.setParameter("private-key", privkey);
-            conf.setParameter("command", "/etc/guacamole/start-vnc-for " + username);
-            configs.put("Create new Remote Desktop (VNC)", conf);
-        } catch (IOException e) {
-            logger.info("CreateVNCAuthenticator: failed to add Create new Virtual Desktop connection: " + e.toString());
-        }
-
-        // Find VNC sessions for this user.
-        try {
-            Process process = Runtime.getRuntime().exec("/etc/guacamole/list-vnc-for " + username);
-            BufferedReader r =  new BufferedReader(new InputStreamReader(process.getInputStream()));
-            String line = null;
-            while((line=r.readLine())!=null) {
-                logger.info("Found VNC entry: " + line);
-
-                String[] words = line.split(" ");
-                if (words.length < 2)
-                    continue;
-                String port = words[0];
-                if (!port.startsWith(":"))
-                    continue;
-                boolean guac = (words[1] == "T");
+            conf.setParameter("username", username);
+            configs.put("SSH", conf);
+            try {
                 conf = new GuacamoleConfiguration();
-                conf.setProtocol("vnc");
+                conf.setProtocol("ssh");
                 conf.setParameter("hostname", "localhost");
-                conf.setParameter("port", port);
-                if (guac)
-                    conf.setParameter("password", "GUAC");
-                configs.put("Remote Desktop #" + port.substring(1), conf);
+                conf.setParameter("username", "create-vnc");
+                Path privkeyfilename = Paths.get(environment.getGuacamoleHome() + "/create-vnc/id_createvnc");
+                String privkey = Files.readString(privkeyfilename);
+                conf.setParameter("private-key", privkey);
+                conf.setParameter("command", environment.getGuacamoleHome() + "/start-vnc-for " + username);
+                configs.put("Create a new Remote Desktop (VNC)", conf);
+            } catch (IOException e) {
+                logger.info("CreateVNCAuthenticator: failed to add Create new Virtual Desktop connection: " + e.toString());
             }
-        } catch (IOException e) {
-            logger.info("CreateVNCAuthenticator: failed to list VNC sessions: " + e.toString());
-        }
 
-        return configs;
-    }
-    
-    @Override
-    public Map<String, GuacamoleConfiguration> getAuthorizedConfigurations(Credentials cred) throws GuacamoleException {
-        Map<String, GuacamoleConfiguration> configs = null;
-
-        logger.info("getAuthorizedConfigurations() called for create-vnc");
-
-        //UserMapping userMapping = getUserMapping();
-        //if (userMapping != null) {
-        // Validate user and return the associated connections
-        try {
-            //String serviceName = userMapping.getServiceName();
-            String serviceName = "guacamole";
-            String userName = cred.getUsername();
-            UnixUser user = new PAM(serviceName).authenticate(userName, cred.getPassword());
-            if (user != null) {
-                //configs = userMapping.getConfigurations(userName, user.getGroups());
-                configs = getUserConfigs(userName);
-                if (configs.isEmpty()) {
-                    logger.info("No connections configured for user \"{}\".", userName);
+            // Find VNC sessions for this user.
+            try {
+                Process process = Runtime.getRuntime().exec(environment.getGuacamoleHome() + "/list-vnc-for " + username);
+                BufferedReader r =  new BufferedReader(new InputStreamReader(process.getInputStream()));
+                String line = null;
+                while((line=r.readLine())!=null) {
+                    //logger.info("Found VNC entry: " + line);
+                    String[] words = line.split(" ");
+                    if (words.length < 2)
+                        continue;
+                    String port = words[0];
+                    if (!port.startsWith(":"))
+                        continue;
+                    port = port.substring(1);
+                    //logger.info("Trimmed port to: " + port);
+                    int portnum = Integer.parseInt(port);
+                    boolean guac = words[1].equals("T");
+                    conf = new GuacamoleConfiguration();
+                    conf.setProtocol("vnc");
+                    conf.setParameter("hostname", "localhost");
+                    conf.setParameter("port", Integer.toString(portnum + 5900));
+                    if (guac) {
+                        conf.setParameter("password", "GUAC");
+                    }
+                    //logger.info("VNC config: " + conf.toString());
+                    configs.put("Remote Desktop #" + port, conf);
                 }
+            } catch (IOException e) {
+                logger.info("CreateVNCAuthenticator: failed to list VNC sessions: " + e.toString());
+            }
+            return configs;
+        }
+    }
+
+    private boolean pamCheckCredentials(Credentials cred) {
+        try {
+            String serviceName = "guacamole";
+            UnixUser user = new PAM(serviceName).authenticate(cred.getUsername(),
+                                                              cred.getPassword());
+            if (user != null) {
+                return true;
             }
         } catch (PAMException e) {
             // Fall through
         }
-        //}
-        logger.info("getAuthConfigs(): returning " + configs);
-        return configs;
+        return false;
     }
-
+    
+    // copied from SimpleAuthenticationProvider -- use a different
+    // UserContext subclass.
     @Override
-    public AuthenticatedUser updateAuthenticatedUser(AuthenticatedUser authenticatedUser,
-                                                     Credentials credentials)
+    public UserContext getUserContext(AuthenticatedUser authenticatedUser)
         throws GuacamoleException {
-        logger.info("CreateVNCAuthenticator::updateAuthenticatedUser()");
-        //return authenticateUser(credentials);
-
-        logger.info("current auser: " + authenticatedUser);
-        logger.info("credentials: " + credentials);
-
-        logger.info("prev credentials: " + authenticatedUser.getCredentials());
-
-        logger.info("credentials: u: " + credentials.getUsername() + ", p: " + credentials.getPassword());
-        Credentials cold = authenticatedUser.getCredentials();
-        logger.info("prev credentials: u: " + cold.getUsername() + ", p: " + cold.getPassword());
-
-        //if (authenticatedUser instanceof SimpleAuthenticatedUser) {
-        //  SimpleAuthenticatedUser sau = (SimpleAuthenticatedUser)authenticatedUser;
-        //logger.info("SimpleAU credentials: " + sau.getCredentials());
-        //}
-
-        AuthenticatedUser au = authenticateUser(cold);
-        logger.info("updateAuthUser: got " + au);
-        return au;
-
-        //return authenticatedUser;
+        Credentials cred = authenticatedUser.getCredentials();
+        if (!pamCheckCredentials(cred))
+            return null;
+        return new CreateVNCUserContext(this, authenticatedUser.getIdentifier());
     }
-    // SimpleAuthenticatedUser.configs
-    
-
-    
 }
