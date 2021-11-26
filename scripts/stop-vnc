@@ -1,0 +1,14 @@
+#! /bin/bash
+
+vncserver -kill :$1
+
+echo
+echo
+echo
+echo "A window should now pop up saying that you have been Disconnected."
+echo
+echo "Please use the 'Home' button to return to the main menu."
+echo
+echo
+sleep 3
+echo

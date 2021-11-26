@@ -1,0 +1,5 @@
+#! /bin/bash
+
+echo "GUAC" | /usr/bin/tigervncpasswd -f ~/.vnc/passwd-guac
+/usr/bin/tigervncserver -fg -cleanstale -passwd ~/.vnc/passwd-guac
+

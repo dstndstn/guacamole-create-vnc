@@ -1,0 +1,4 @@
+#! /bin/bash
+user=$1
+shift
+sudo --set-home --user=$user /etc/guacamole/launch-vnc

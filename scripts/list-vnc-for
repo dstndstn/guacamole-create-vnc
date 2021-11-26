@@ -1,0 +1,9 @@
+#! /bin/bash
+user=$1
+shift
+if [ "$1x" == "--remotex" ]; then
+    /etc/guacamole/list-vnc --remote $user
+else
+    sudo --set-home --user=$user /etc/guacamole/list-vnc
+    # "$@"
+fi
