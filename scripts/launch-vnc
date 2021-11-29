@@ -1,5 +1,4 @@
 #! /bin/bash
-
 #/cm/shared/apps/slurm/19.05.8/bin/sbatch
 cd
 /etc/guacamole/sbatch -p sharedq -J vncserver --ntasks 1 --time 7-00:00:00 --cpus-per-task 4 --mem 8GB --verbose /cm/shared/apps/guacamole/bin/run-vnc

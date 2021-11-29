@@ -4,10 +4,11 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.IOException;
 import java.io.Reader;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Collection;
+import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.guacamole.GuacamoleException;
@@ -121,10 +122,24 @@ public class CreateVNCAuthenticator extends SimpleAuthenticationProvider
                 final long now = System.currentTimeMillis();
                 this.logger.info("getConnectionDirectory() for " + this.username + ": cached " + CreateVNCAuthenticator.this.cachedConnDirTime + ", now " + now + ", diff " + (now - CreateVNCAuthenticator.this.cachedConnDirTime));
                 if (now - CreateVNCAuthenticator.this.cachedConnDirTime < 2000L && CreateVNCAuthenticator.this.cachedConnDir != null) {
-                    this.logger.info("getConnectionDirectory() for " + this.username + ": cached");
+                    this.logger.info("getConnectionDirectory() for " + this.username + ": cache hit");
                     return CreateVNCAuthenticator.this.cachedConnDir;
                 }
-                this.logger.info("getConnectionDirectory() for " + this.username);
+                this.logger.info("getConnectionDirectory() for " + this.username + " (cache miss; querying)");
+
+
+                this.logger.info("List all VNC sessions:");
+                try {
+                    Vector<GuacamoleConfiguration> allconfigs = CreateVNCAuthenticator.listVncSessions(CreateVNCAuthenticator.this.environment);
+                    for (int i=0; i<allconfigs.size(); i++) {
+                        GuacamoleConfiguration conf = allconfigs.get(i);
+                        this.logger.info("Found: " + conf.getParameter("username") + " on host " + conf.getParameter("hostname") + " port " + conf.getParameter("port"));
+                    }
+
+                } catch (IOException e) {
+                    this.logger.info("CreateVNCAuthenticator: failed to list VNC sessions: " + e.toString());
+                }
+
                 final Map<String, GuacamoleConfiguration> configs = this.getUserConfigs(this.username);
                 final Map<String, Connection> connections = new ConcurrentHashMap<String, Connection>(configs.size());
                 for (final Map.Entry<String, GuacamoleConfiguration> configEntry : configs.entrySet()) {
@@ -158,6 +173,7 @@ public class CreateVNCAuthenticator extends SimpleAuthenticationProvider
                 conf.setParameter("username", username);
                 conf.setParameter("password", this.password);
                 configs.put("SSH", conf);
+                /*
                 conf = new GuacamoleConfiguration();
                 conf.setProtocol("ssh");
                 conf.setParameter("hostname", "localhost");
@@ -165,8 +181,9 @@ public class CreateVNCAuthenticator extends SimpleAuthenticationProvider
                 conf.setParameter("password", this.password);
                 conf.setParameter("command", "/bin/bash --norc --noprofile -i " + CreateVNCAuthenticator.this.environment.getGuacamoleHome() + "/start-vnc");
                 configs.put("Create a new Remote Desktop (VNC)", conf);
+
                 try {
-                    final Process process = Runtime.getRuntime().exec(CreateVNCAuthenticator.this.environment.getGuacamoleHome() + "/list-vnc-for " + username);
+                    final Process process = Runtime.getRuntime().exec(CreateVNCAuthenticator.this.environment.getGuacamoleHome() + "/list-vnc-for " + username + " --remote");
                     final BufferedReader r = new BufferedReader(new InputStreamReader(process.getInputStream()));
                     String line = null;
                     while ((line = r.readLine()) != null) {
@@ -201,6 +218,7 @@ public class CreateVNCAuthenticator extends SimpleAuthenticationProvider
                 catch (IOException e) {
                     this.logger.info("CreateVNCAuthenticator: failed to list VNC sessions: " + e.toString());
                 }
+                 */
                 conf = new GuacamoleConfiguration();
                 conf.setProtocol("ssh");
                 conf.setParameter("hostname", "localhost");
@@ -208,6 +226,7 @@ public class CreateVNCAuthenticator extends SimpleAuthenticationProvider
                 conf.setParameter("password", this.password);
                 conf.setParameter("command", "/bin/bash --norc -i " + CreateVNCAuthenticator.this.environment.getGuacamoleHome() + "/launch-vnc");
                 configs.put("Launch a new Remote Desktop (VNC)", conf);
+
                 try {
                     final Process process = Runtime.getRuntime().exec(CreateVNCAuthenticator.this.environment.getGuacamoleHome() + "/list-vnc-for " + username + " --remote");
                     final BufferedReader r = new BufferedReader(new InputStreamReader(process.getInputStream()));
@@ -241,4 +260,42 @@ public class CreateVNCAuthenticator extends SimpleAuthenticationProvider
                 return configs;
             }
         }
+
+    public static Vector<GuacamoleConfiguration> listVncSessions(Environment env)
+    throws IOException {
+        Logger logger = LoggerFactory.getLogger((Class)CreateVNCAuthenticator.class);
+        Vector<GuacamoleConfiguration> confs = new Vector<GuacamoleConfiguration>();
+        
+        final Process process = Runtime.getRuntime().exec(env.getGuacamoleHome() +
+                                                          "/list-vnc-all --remote");
+        final BufferedReader r = new BufferedReader(new InputStreamReader(process.getInputStream()));
+        String line = null;
+        while ((line = r.readLine()) != null) {
+            logger.info("  " + line);
+            final String[] words = line.split(" ");
+            if (words.length < 3) {
+                continue;
+            }
+            final String host = words[0];
+            String port = words[1];
+            if (!port.startsWith(":")) {
+                continue;
+            }
+            port = port.substring(1);
+            final int portnum = Integer.parseInt(port);
+            final boolean guac = words[1].equals("T");
+            String user = words[2];
+
+            GuacamoleConfiguration conf = new GuacamoleConfiguration();
+            conf.setParameter("hostname", host);
+            conf.setParameter("port", Integer.toString(portnum + 5900));
+            conf.setParameter("username", user);
+            confs.add(conf);
+            //if (guac) {
+            //conf.setParameter("password", "GUAC");
+            //}
+        }
+        return confs;
+    }
+
 }
