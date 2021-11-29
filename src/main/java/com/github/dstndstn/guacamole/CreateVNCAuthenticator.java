@@ -1,37 +1,40 @@
 package com.github.dstndstn.guacamole;
 
-import java.io.IOException;
-import java.io.Reader;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.io.IOException;
+import java.io.Reader;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.Collection;
+import java.util.concurrent.ConcurrentHashMap;
+
+import org.apache.guacamole.GuacamoleException;
+import org.apache.guacamole.environment.Environment;
+import org.apache.guacamole.environment.LocalEnvironment;
 import org.apache.guacamole.net.auth.simple.SimpleDirectory;
 import org.apache.guacamole.net.auth.simple.SimpleConnection;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.Collection;
 import org.apache.guacamole.net.auth.simple.SimpleObjectPermissionSet;
-import org.apache.guacamole.net.auth.permission.ObjectPermissionSet;
 import org.apache.guacamole.net.auth.simple.SimpleUser;
-import org.apache.guacamole.net.auth.User;
+import org.apache.guacamole.net.auth.simple.SimpleAuthenticationProvider;
+import org.apache.guacamole.net.auth.permission.ObjectPermissionSet;
 import org.apache.guacamole.net.auth.AbstractUserContext;
-import org.apache.guacamole.net.auth.AuthenticationProvider;
-import org.apache.guacamole.net.auth.UserContext;
 import org.apache.guacamole.net.auth.AuthenticatedUser;
+import org.apache.guacamole.net.auth.AuthenticationProvider;
+import org.apache.guacamole.net.auth.Connection;
+import org.apache.guacamole.net.auth.Credentials;
+import org.apache.guacamole.net.auth.Directory;
+import org.apache.guacamole.net.auth.User;
+import org.apache.guacamole.net.auth.UserContext;
+import org.apache.guacamole.protocol.GuacamoleConfiguration;
+
 import org.jvnet.libpam.UnixUser;
 import org.jvnet.libpam.PAMException;
 import org.jvnet.libpam.PAM;
-import java.util.HashMap;
-import org.apache.guacamole.protocol.GuacamoleConfiguration;
-import java.util.Map;
-import org.apache.guacamole.net.auth.Credentials;
-import org.apache.guacamole.GuacamoleException;
-import org.apache.guacamole.environment.LocalEnvironment;
+
 import org.slf4j.LoggerFactory;
-import org.apache.guacamole.net.auth.Connection;
-import org.apache.guacamole.net.auth.Directory;
-import org.apache.guacamole.environment.Environment;
 import org.slf4j.Logger;
-import org.apache.guacamole.net.auth.simple.SimpleAuthenticationProvider;
 
 public class CreateVNCAuthenticator extends SimpleAuthenticationProvider
 {
