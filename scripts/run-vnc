@@ -1,5 +1,10 @@
 #! /bin/bash
 
-echo "GUAC" | /usr/bin/tigervncpasswd -f ~/.vnc/passwd-guac
-/usr/bin/tigervncserver -fg -cleanstale -passwd ~/.vnc/passwd-guac
+#echo "GUAC" | /usr/bin/tigervncpasswd -f ~/.vnc/passwd-guac
+#/usr/bin/tigervncserver -fg -cleanstale -passwd ~/.vnc/passwd-guac
+
+#set
+
+cat /dev/urandom | tr -dc '[:alpha:]' | head -c 10 | /usr/bin/tigervncpasswd -f > ~/.vnc/passwd-guac-$SLURM_JOB_ID
+/usr/bin/tigervncserver -fg -rfbauth ~/.vnc/passwd-guac-$SLURM_JOB_ID
 
