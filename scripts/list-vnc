@@ -11,25 +11,46 @@ parser.add_argument('--remote')
 opt = parser.parse_args()
 
 if opt.remote:
+
+    queue = 'sharedq'
+    cmd = ['/etc/guacamole/sinfo', '-p', queue, '-N', '-o', '%n', '--noheader']
+    p = subprocess.run(cmd, stdout=subprocess.PIPE)
+    s = p.stdout.decode()
+    nodes = s.split('\n')
+    nodes = [n for n in nodes if len(n)>0]
+    print('Nodes in the VNC queue:', nodes)
+
     #host = 'cn001'
     host = 'cn002'
     #cmd = ['ssh', host, '/etc/guacamole/list-vnc']
 
     user = opt.remote
-    cmd = ['ssh',
-           '-F', '/etc/guacamole/tomcat/ssh_config',
-           '-i', '/etc/guacamole/tomcat/id_createvnc_computenode',
-           'create-vnc@'+host,
-           'sudo', '--set-home', '--user='+user,
-           '/etc/guacamole/list-vnc']
-    print(' '.join(cmd))
-    p = subprocess.run(cmd, stdout=subprocess.PIPE)
-    s = p.stdout.decode()
-    lines = s.split('\n')
-    lines = [line for line in lines if line.startswith(':')]
-    for line in lines:
-        print(line, host)
-    sys.exit(p.returncode)
+
+    procs = []
+    for host in nodes:
+        cmd = ['ssh',
+               '-F', '/etc/guacamole/tomcat/ssh_config',
+               '-i', '/etc/guacamole/tomcat/id_createvnc_computenode',
+               'create-vnc@'+host,
+               'sudo', '--set-home', '--user='+user,
+               '/etc/guacamole/list-vnc']
+        print(' '.join(cmd))
+        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+                             #bufsize=1,
+        procs.append((host, p))
+    rtn = 0
+    for host,p in procs:
+        s,e = p.communicate()
+        lines = s.split('\n')
+        for x in lines + e.split('\n'):
+            if len(x):
+                print('#', host, x)
+        lines = [line for line in lines if line.startswith(':')]
+        for line in lines:
+            print(line, host)
+        if p.returncode != 0:
+            rtn = p.returncode
+    sys.exit(rtn)
 
 cmd = ['/usr/bin/vncserver', '-list', '-cleanstale']
 p = subprocess.run(cmd, stdout=subprocess.PIPE)

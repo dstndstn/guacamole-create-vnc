@@ -1,4 +1,8 @@
 #! /bin/bash
+
+echo "list-vnc-for $@"
+echo "running as: $(whoami)"
+
 user=$1
 shift
 if [ "$1x" == "--remotex" ]; then

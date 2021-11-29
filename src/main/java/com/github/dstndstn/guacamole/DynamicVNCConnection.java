@@ -72,10 +72,12 @@ public class DynamicVNCConnection extends SimpleConnection
     }
 
     private boolean findVncSessionFor(final String username, final GuacamoleConfiguration conf) throws IOException {
+        this.logger.info("findVncSessionFor:");
         final Process process = Runtime.getRuntime().exec(this.environment.getGuacamoleHome() + "/list-vnc-for " + username + " --remote");
         final BufferedReader r = new BufferedReader(new InputStreamReader(process.getInputStream()));
         String line = null;
         while ((line = r.readLine()) != null) {
+            this.logger.info("  " + line);
             final String[] words = line.split(" ");
             if (words.length < 3) {
                 continue;

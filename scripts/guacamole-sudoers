@@ -1,0 +1,2 @@
+Cmnd_Alias GUAC = /etc/guacamole/list-vnc
+create-vnc ALL=(ALL:ALL) NOPASSWD:SETENV:GUAC
