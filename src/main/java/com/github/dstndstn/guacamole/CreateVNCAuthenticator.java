@@ -223,7 +223,7 @@ public class CreateVNCAuthenticator extends SimpleAuthenticationProvider
         Vector<GuacamoleConfiguration> confs = new Vector<GuacamoleConfiguration>();
         
         final Process process = Runtime.getRuntime().exec(env.getGuacamoleHome() +
-                                                          "/list-vnc-all --remote");
+                                                          "/list-vnc --remote");
         final BufferedReader r = new BufferedReader(new InputStreamReader(process.getInputStream()));
         String line = null;
         while ((line = r.readLine()) != null) {

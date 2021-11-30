@@ -22,7 +22,7 @@ def remote():
                '-F', os.path.join(base, 'tomcat/ssh_config'),
                '-i', os.path.join(base, 'tomcat/id_createvnc_computenode'),
                'create-vnc@'+host,
-               os.path.join(base, 'list-vnc-all')]
+               os.path.join(base, 'list-vnc')]
         print(' '.join(cmd))
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
         procs.append((host, p))
