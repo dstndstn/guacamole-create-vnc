@@ -31,17 +31,6 @@ public class DynamicVNCConnection extends ReadPasswordConnection /*SimpleConnect
         final GuacamoleConfiguration conf = this.getFullConfiguration();
         //this.logger.info("  config: " + conf.getParameters().toString());
         final String username = conf.getParameter("username");
-        /*
-         try {
-         if (this.findVncSessionFor(username, conf)) {
-         this.logger.info("Found existing VNC sessions, setting config: " + conf.getParameters().toString());
-         return super.connect(info, (Map)tokens);
-         }
-         }
-         catch (IOException e) {
-         this.logger.info("Failed to list VNC sessions: " + e.toString());
-         }
-         */
         this.logger.info("Launching new VNC session...");
         String host = null;
         int port = -1;
@@ -76,59 +65,9 @@ public class DynamicVNCConnection extends ReadPasswordConnection /*SimpleConnect
         if ((host != null) && (port > -1)) {
             conf.setParameter("hostname", host);
             conf.setParameter("port", Integer.toString(port + 5900));
-            if (passwdfn != null) {
+            if (passwdfn != null)
                 conf.setParameter("vnc-password-file", passwdfn);
-                //String passwd = this.readPasswordFile(username, passwdfn);
-                //if (passwd != null)
-                //conf.setParameter("password", passwd);
-            }
         }
-        
-        /*for (int i = 0; i < 5; ++i) {
-            try {
-                if (this.findVncSessionFor(username, conf)) {
-                    this.logger.info("Found existing VNC sessions, setting config: " + conf.getParameters().toString());
-                    return super.connect(info, (Map)tokens);
-                }
-            }
-            catch (IOException e2) {
-                this.logger.info("Failed to list VNC sessions: " + e2.toString());
-            }
-            try {
-                Thread.sleep(2000L);
-            }
-            catch (InterruptedException ex) {}
-        }
-         */
         return super.connect(info, (Map)tokens);
-    }
-
-    private boolean findVncSessionFor(final String username, final GuacamoleConfiguration conf) throws IOException {
-        this.logger.info("findVncSessionFor:");
-        final Process process = Runtime.getRuntime().exec(this.environment.getGuacamoleHome() + "/list-vnc-for " + username + " --remote");
-        final BufferedReader r = new BufferedReader(new InputStreamReader(process.getInputStream()));
-        String line = null;
-        while ((line = r.readLine()) != null) {
-            this.logger.info("  " + line);
-            final String[] words = line.split(" ");
-            if (words.length < 3) {
-                continue;
-            }
-            String port = words[0];
-            if (!port.startsWith(":")) {
-                continue;
-            }
-            port = port.substring(1);
-            final int portnum = Integer.parseInt(port);
-            final boolean guac = words[1].equals("T");
-            final String host = words[2];
-            conf.setParameter("hostname", host);
-            conf.setParameter("port", Integer.toString(portnum + 5900));
-            if (guac) {
-                conf.setParameter("password", "GUAC");
-            }
-            return true;
-        }
-        return false;
     }
 }

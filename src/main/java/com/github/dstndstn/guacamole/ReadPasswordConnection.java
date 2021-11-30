@@ -38,18 +38,18 @@ public class ReadPasswordConnection extends SimpleConnection
             conf.setParameter("password", passwd);
             //logger.info("Set VNC password: " + passwd);
         }
-        this.logger.info("Connecting with config: " + conf.getParameters().toString());
+        //this.logger.info("Connecting with config: " + conf.getParameters().toString());
         return super.connect(info, (Map)tokens);
     }
 
     protected String readPasswordFile(final String username, final String filename) {
-        this.logger.info("readPasswordFile: " + username + ", " + filename);
+        //this.logger.info("readPasswordFile: " + username + ", " + filename);
         try {
             final Process process = Runtime.getRuntime().exec(this.environment.getGuacamoleHome() + "/read-vnc-passwd " + username + " " + filename);
             final BufferedReader r = new BufferedReader(new InputStreamReader(process.getInputStream()));
             String line = null;
             while ((line = r.readLine()) != null) {
-                this.logger.info("  " + line);
+                //this.logger.info("  " + line);
                 return line;
             }
         } catch (IOException e) {
