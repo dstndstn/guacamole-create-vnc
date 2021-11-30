@@ -29,18 +29,20 @@ public class ReadPasswordConnection extends SimpleConnection
     public GuacamoleTunnel connect(final GuacamoleClientInformation info, final Map<String, String> tokens) throws GuacamoleException {
         this.logger.info("ReadPasswordConnection.connect()");
         final GuacamoleConfiguration conf = this.getFullConfiguration();
-        this.logger.info("  config: " + conf.getParameters().toString());
+        //this.logger.info("  config: " + conf.getParameters().toString());
         final String username = conf.getParameter("username");
 
         final String passwd_fn = conf.getParameter("vnc-password-file");
         String passwd = readPasswordFile(username, passwd_fn);
         if (passwd != null) {
             conf.setParameter("password", passwd);
+            //logger.info("Set VNC password: " + passwd);
         }
+        this.logger.info("Connecting with config: " + conf.getParameters().toString());
         return super.connect(info, (Map)tokens);
     }
 
-    private String readPasswordFile(final String username, final String filename) {
+    protected String readPasswordFile(final String username, final String filename) {
         this.logger.info("readPasswordFile: " + username + ", " + filename);
         try {
             final Process process = Runtime.getRuntime().exec(this.environment.getGuacamoleHome() + "/read-vnc-passwd " + username + " " + filename);

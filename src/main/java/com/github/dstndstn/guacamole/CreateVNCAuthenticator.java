@@ -79,7 +79,7 @@ public class CreateVNCAuthenticator extends SimpleAuthenticationProvider
         if (!this.pamCheckCredentials(cred)) {
             return null;
         }
-        return (UserContext)new CreateVNCUserContext((AuthenticationProvider)this, authenticatedUser.getIdentifier(), cred.getPassword());
+        return (UserContext)new CreateVNCUserContext(this, authenticatedUser.getIdentifier(), cred.getPassword());
     }
 
     public Vector<GuacamoleConfiguration> getSessions() {
@@ -106,14 +106,15 @@ public class CreateVNCAuthenticator extends SimpleAuthenticationProvider
     
     private class CreateVNCUserContext extends AbstractUserContext {
         private final Logger logger;
-        private final AuthenticationProvider authProvider;
+        private final CreateVNCAuthenticator parent;
         private final String username;
         private final String password;
         private final boolean interpretTokens;
 
-        public CreateVNCUserContext(final AuthenticationProvider authProvider, final String username, final String password) {
+        public CreateVNCUserContext(CreateVNCAuthenticator parent,
+                                    final String username, final String password) {
             this.logger = LoggerFactory.getLogger((Class)CreateVNCUserContext.class);
-            this.authProvider = authProvider;
+            this.parent = parent;
             this.username = username;
             this.password = password;
             this.interpretTokens = true;
@@ -135,12 +136,12 @@ public class CreateVNCAuthenticator extends SimpleAuthenticationProvider
         }
 
         public AuthenticationProvider getAuthenticationProvider() {
-            return this.authProvider;
+            return (AuthenticationProvider)this.parent;
         }
 
         
         public Directory<Connection> getConnectionDirectory() throws GuacamoleException {
-            Vector<GuacamoleConfiguration> configs = CreateVNCAuthenticator.this.getSessions();
+            Vector<GuacamoleConfiguration> configs = parent.getSessions();
             Connection connection = null;
             GuacamoleConfiguration conf = null;
             String ident = null;
@@ -167,7 +168,7 @@ public class CreateVNCAuthenticator extends SimpleAuthenticationProvider
                 conf2.setParameter("hostname", conf.getParameter("hostname"));
                 conf2.setParameter("username", this.username);
                 conf2.setParameter("password", this.password);
-                conf2.setParameter("command", "/bin/bash --norc -i " + CreateVNCAuthenticator.this.environment.getGuacamoleHome() + "/stop-vnc " + conf.getParameter("port"));
+                conf2.setParameter("command", "/bin/bash --norc -i " + parent.environment.getGuacamoleHome() + "/stop-vnc " + conf.getParameter("shortport"));
                 ident = "Stop Remote Desktop " +
                     conf.getParameter("hostname") + " #" + conf.getParameter("shortport");
                 connection = (Connection)new SimpleConnection(ident, ident, conf2,
@@ -191,7 +192,8 @@ public class CreateVNCAuthenticator extends SimpleAuthenticationProvider
             conf.setParameter("hostname", "localhost");
             conf.setParameter("username", username);
             conf.setParameter("password", this.password);
-            conf.setParameter("command", "/bin/bash --norc -i " + CreateVNCAuthenticator.this.environment.getGuacamoleHome() + "/launch-vnc");
+            //conf.setParameter("command", "/bin/bash --norc -i " + CreateVNCAuthenticator.this.environment.getGuacamoleHome() + "/launch-vnc");
+            conf.setParameter("command", parent.environment.getGuacamoleHome() + "/launch-vnc");
             ident = "Launch a new Remote Desktop (VNC)";
             connection = (Connection)new SimpleConnection(ident, ident, conf,
                                                           this.interpretTokens);

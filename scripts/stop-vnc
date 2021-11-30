@@ -1,6 +1,11 @@
 #! /bin/bash
 
+echo
+echo Stopping Remote Desktop $1 on $(hostname)
+echo
+echo vncserver -kill :$1
 vncserver -kill :$1
+sleep 1
 
 echo
 echo

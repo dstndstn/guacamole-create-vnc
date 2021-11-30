@@ -4,6 +4,7 @@ import os
 import subprocess
 import psutil
 import argparse
+import re
 
 def remote():
     base = '/etc/guacamole'
@@ -53,8 +54,10 @@ def main():
             continue
         # Search for VNC sessions whose command-lines look like this:
         #['/usr/bin/Xvnc', ':1', '-auth', '/home/akogios/.Xauthority', '-desktop', 'cn001:1 (akogios)', '-fp', '/usr/share/fonts/X11//misc,/usr/share/fonts/X11//Type1', '-geometry', '1024x768', '-pn', '-rfbauth', '/home/akogios/.vnc/passwd', '-rfbport', '5901', '-rfbwait', '30000']
-
-        if cmd[0] != '/usr/bin/Xvnc':
+        # or
+        # /usr/bin/Xtigervnc :30 -desktop cn002.cm.cluster:30 (dlang) -auth /home/dlang/.Xauthority -geometry 1900x1200 -depth 24 -rfbwait 30000 -rfbauth /home/dlang/.vnc/passwd-guac-270808 -rfbport 5930 -pn -localhost -SecurityTypes VncAuth
+        
+        if not cmd[0] in ['/usr/bin/Xvnc', '/usr/bin/Xtigervnc']:
             continue
 
         port = cmd[1]
@@ -62,14 +65,25 @@ def main():
             continue
 
         # Search for "-rfbauth <password-file>"
+        # AND expect that password-file is like passwd-guac-270804.txt
         passwd_fn = None
+        jobid = 0
+        rex = re.compile(r'passwd-guac-(?P<jobid>\d*)\.txt')
         for a1,a2 in zip(cmd, cmd[1:]):
             if a1 == '-rfbauth':
-                passwd_fn = a2
-                break
+                # Check for .txt file (as created by run-vnc)
+                txtfn = a2 + '.txt'
+                if os.path.exists(txtfn):
+                    passwd_fn = txtfn
+                    m = rex.match(os.path.basename(txtfn))
+                    if m is not None:
+                        print('Filename matched RE')
+                        jobid = int(m.group('jobid'))
+                    break
 
+        
         user = proc.username()
-        print('%s %s %s' % (port, user, passwd_fn))
+        print('%s %s %s %i' % (port, user, passwd_fn, jobid))
 
     return 0
 

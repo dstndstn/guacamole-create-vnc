@@ -10,6 +10,7 @@ cd
 import os
 import sys
 import subprocess
+import re
 
 ##### pyslurm...?   https://github.com/PySlurm/pyslurm/tree/19.05.0
 
@@ -31,21 +32,21 @@ def main():
            '--verbose',
            #/cm/shared/apps/guacamole/bin/run-vnc
            '/etc/guacamole/run-vnc']
-    print('Running:', cmd)
+    print('Running:', ' '.join(cmd))
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                          universal_newlines=True)
     s,e = p.communicate()
     jobid = None
+    for line in e.split('\n'):
+        print(line)
     for line in s.split('\n'):
-        print('stdout', line)
+        print(line)
         ## FRAGILE -- look for a line from Slurm...
         if line.startswith('Submitted batch job'):
             words = line.split()
             jobid = words[-1]
             jobid = int(jobid)
-            print('Found jobid', jobid)
-    for line in e.split('\n'):
-        print('stderr', line)
+            #print('Found jobid', jobid)
     if p.returncode != 0:
         return p.returncode
     if jobid is None:
@@ -59,11 +60,49 @@ def main():
     #homedir = os.path.expanduser('~')
     for i in range(60):
         import time
+        # poke the filesystem
+        os.listdir()
+        # does the slurm log file exist yet?
         if os.path.exists(jobfn):
             break
         print('.', flush=True, end='')
         time.sleep(2.)
+    print()
+    # "New 'cn002:29 (dlang)' desktop is cn002:29"
+    print('Remote Desktop job started - looking for desktop number')
+    rex = re.compile('New .* desktop is (?P<host>\w*):(?P<port>\d*)')
 
+    # "New 'cn002.cm.cluster:29 (dlang)' desktop at :29 on machine cn002.cm.cluster"
+    rex2 = re.compile('New .* desktop at :(?P<port>\d*) on machine (?P<host>\w*)')
+
+    # "Saving VNC password in /home/dlang/.vnc/passwd-guac-$SLURM_JOB_ID.txt"
+
+    foundit = False
+    for i in range(60):
+        lines = open(jobfn).read().split('\n')
+        for line in lines:
+            m = rex.match(line)
+            if m is not None:
+                print()
+                print('VNCHost %s' % m.group('host'))
+                print('VNCPort %s' % m.group('port'))
+                foundit = True
+                break
+            m = rex2.match(line)
+            if m is not None:
+                print()
+                print('VNCHost %s' % m.group('host'))
+                print('VNCPort %s' % m.group('port'))
+                foundit = True
+                break
+            if line.startswith('Saving VNC password in'):
+                words = line.split()
+                fn = words[-1]
+                print('VNCPasswordFile %s' % fn)
+        if foundit:
+            break
+        time.sleep(1.)
+        print('.', flush=True, end='')
     print()
     print('Remote Desktop started!')
     print()
@@ -73,11 +112,12 @@ def main():
     print('A window should now pop up saying that you have been Disconnected.')
     print()
     print('Please use the "Home" button to return to the main menu.')
-    print('Then use your browser\'s "Reload" button to see your new desktop listed.')
+    print()
+    print('Then use your browser\'s "Reload" button to see your new desktop listed!')
     print()
     print()
     
-    time.sleep(5)
+    time.sleep(3)
     return 0
     
 if __name__ == '__main__':

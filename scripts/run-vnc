@@ -1,10 +1,14 @@
 #! /bin/bash
 
-#echo "GUAC" | /usr/bin/tigervncpasswd -f ~/.vnc/passwd-guac
-#/usr/bin/tigervncserver -fg -cleanstale -passwd ~/.vnc/passwd-guac
+echo "Starting a new VNC remote desktop"
+password=$(cat /dev/urandom | tr -dc '[:alpha:]' | head -c 10)
+txtfn=~/.vnc/passwd-guac-$SLURM_JOB_ID.txt
+echo $password > $txtfn
+echo
+echo "Saving VNC password in $txtfn"
+echo $password | /usr/bin/tigervncpasswd -f > ~/.vnc/passwd-guac-$SLURM_JOB_ID
+/usr/bin/tigervncserver -localhost no -fg -rfbauth ~/.vnc/passwd-guac-$SLURM_JOB_ID
 
-#set
-
-cat /dev/urandom | tr -dc '[:alpha:]' | head -c 10 | /usr/bin/tigervncpasswd -f > ~/.vnc/passwd-guac-$SLURM_JOB_ID
-/usr/bin/tigervncserver -fg -rfbauth ~/.vnc/passwd-guac-$SLURM_JOB_ID
-
+# clean up passwd files
+rm $txtfn
+rm ~/.vnc/passwd-guac-$SLURM_JOB_ID
