@@ -1,0 +1,14 @@
+#! /bin/bash
+
+# When called with two args, this script sudo calls itself with one arg.
+
+if [ $# -eq 1 ]; then
+   cd ~/.vnc
+   base=$(basename $1)
+   cat $base
+   exit 0
+fi
+
+user=$1
+fn=$2
+sudo --user=$user --set-home -n $0 $fn

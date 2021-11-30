@@ -151,8 +151,14 @@ public class CreateVNCAuthenticator extends SimpleAuthenticationProvider
                     continue;
                 ident = "Connect to Remote Desktop on " +
                     conf.getParameter("hostname") + " #" + conf.getParameter("shortport");
-                connection = (Connection)new SimpleConnection(ident, ident, conf,
-                                                              this.interpretTokens);
+                String pwfn = conf.getParameter("vnc-password-file");
+                if (pwfn != null) {
+                    connection = (Connection)new ReadPasswordConnection(ident, ident, conf,
+                                                                        this.interpretTokens);
+                } else {
+                    connection = (Connection)new SimpleConnection(ident, ident, conf,
+                                                                  this.interpretTokens);
+                }
                 connection.setParentIdentifier("ROOT");
                 connections.put(ident, connection);
 
@@ -234,16 +240,18 @@ public class CreateVNCAuthenticator extends SimpleAuthenticationProvider
             final boolean guac = words[1].equals("T");
             String user = words[2];
 
+            String passwd_fn = null;
+            if (words.length > 3)
+                passwd_fn = words[3];
+
             GuacamoleConfiguration conf = new GuacamoleConfiguration();
             conf.setProtocol("vnc");
             conf.setParameter("hostname", host);
             conf.setParameter("port", Integer.toString(portnum + 5900));
             conf.setParameter("shortport", Integer.toString(portnum));
             conf.setParameter("username", user);
+            conf.setParameter("vnc-password-file", passwd_fn);
             confs.add(conf);
-            //if (guac) {
-            //conf.setParameter("password", "GUAC");
-            //}
         }
         return confs;
     }

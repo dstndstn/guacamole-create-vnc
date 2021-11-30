@@ -1,4 +1,87 @@
+#! /usr/bin/python3
+
+'''
 #! /bin/bash
 #/cm/shared/apps/slurm/19.05.8/bin/sbatch
 cd
 /etc/guacamole/sbatch -p sharedq -J vncserver --ntasks 1 --time 7-00:00:00 --cpus-per-task 4 --mem 8GB --verbose /cm/shared/apps/guacamole/bin/run-vnc
+'''
+
+import os
+import sys
+import subprocess
+
+##### pyslurm...?   https://github.com/PySlurm/pyslurm/tree/19.05.0
+
+def main():
+    print()
+    print('Launching a Remote Desktop session for you...')
+    print()
+    # cd ~ so that the slurm log file goes somewhere we have write permission!
+    homedir = os.path.expanduser('~')
+    os.chdir(homedir)
+
+    #/cm/shared/apps/slurm/19.05.8/bin/sbatch
+    cmd = ['/etc/guacamole/sbatch', '-p', 'sharedq', '-J', 'vncserver',
+           '--ntasks', '1',
+           #'--time', '7-00:00:00',
+           '--time', '1-00:00:00',
+           '--cpus-per-task', '4',
+           '--mem', '8GB',
+           '--verbose',
+           #/cm/shared/apps/guacamole/bin/run-vnc
+           '/etc/guacamole/run-vnc']
+    print('Running:', cmd)
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                         universal_newlines=True)
+    s,e = p.communicate()
+    jobid = None
+    for line in s.split('\n'):
+        print('stdout', line)
+        ## FRAGILE -- look for a line from Slurm...
+        if line.startswith('Submitted batch job'):
+            words = line.split()
+            jobid = words[-1]
+            jobid = int(jobid)
+            print('Found jobid', jobid)
+    for line in e.split('\n'):
+        print('stderr', line)
+    if p.returncode != 0:
+        return p.returncode
+    if jobid is None:
+        print('Failed to find Slurm job id')
+        return -1
+
+    jobfn = 'slurm-%i.out' % jobid
+    print()
+    print('Waiting for job to start (file %s)...' % jobfn)
+    print()
+    #homedir = os.path.expanduser('~')
+    for i in range(60):
+        import time
+        if os.path.exists(jobfn):
+            break
+        print('.', flush=True, end='')
+        time.sleep(2.)
+
+    print()
+    print('Remote Desktop started!')
+    print()
+
+    print()
+    print()
+    print('A window should now pop up saying that you have been Disconnected.')
+    print()
+    print('Please use the "Home" button to return to the main menu.')
+    print('Then use your browser\'s "Reload" button to see your new desktop listed.')
+    print()
+    print()
+    
+    time.sleep(5)
+    return 0
+    
+if __name__ == '__main__':
+    sys.exit(main())
+
+
+
