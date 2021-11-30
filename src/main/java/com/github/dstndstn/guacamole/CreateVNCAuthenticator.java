@@ -168,7 +168,8 @@ public class CreateVNCAuthenticator extends SimpleAuthenticationProvider
                 conf2.setParameter("hostname", conf.getParameter("hostname"));
                 conf2.setParameter("username", this.username);
                 conf2.setParameter("password", this.password);
-                conf2.setParameter("command", "/bin/bash --norc -i " + parent.environment.getGuacamoleHome() + "/stop-vnc " + conf.getParameter("shortport"));
+                //conf2.setParameter("command", "/bin/bash --norc -i " + parent.environment.getGuacamoleHome() + "/stop-vnc " + conf.getParameter("shortport"));
+                conf2.setParameter("command", parent.environment.getGuacamoleHome() + "/stop-vnc " + conf.getParameter("shortport"));
                 ident = "Stop Remote Desktop " +
                     conf.getParameter("hostname") + " #" + conf.getParameter("shortport");
                 connection = (Connection)new SimpleConnection(ident, ident, conf2,
@@ -192,7 +193,6 @@ public class CreateVNCAuthenticator extends SimpleAuthenticationProvider
             conf.setParameter("hostname", "localhost");
             conf.setParameter("username", username);
             conf.setParameter("password", this.password);
-            //conf.setParameter("command", "/bin/bash --norc -i " + CreateVNCAuthenticator.this.environment.getGuacamoleHome() + "/launch-vnc");
             conf.setParameter("command", parent.environment.getGuacamoleHome() + "/launch-vnc");
             ident = "Launch a new Remote Desktop (VNC)";
             connection = (Connection)new SimpleConnection(ident, ident, conf,
