@@ -29,7 +29,7 @@ def main():
            '--time', '1-00:00:00',
            '--cpus-per-task', '4',
            '--mem', '8GB',
-           '--verbose',
+           #'--verbose',
            #/cm/shared/apps/guacamole/bin/run-vnc
            '/etc/guacamole/run-vnc']
     print('Running:', ' '.join(cmd))

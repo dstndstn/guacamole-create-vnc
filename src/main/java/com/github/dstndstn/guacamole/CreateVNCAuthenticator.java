@@ -169,7 +169,7 @@ public class CreateVNCAuthenticator extends SimpleAuthenticationProvider
                 conf2.setParameter("username", this.username);
                 conf2.setParameter("password", this.password);
                 //conf2.setParameter("command", "/bin/bash --norc -i " + parent.environment.getGuacamoleHome() + "/stop-vnc " + conf.getParameter("shortport"));
-                conf2.setParameter("command", parent.environment.getGuacamoleHome() + "/stop-vnc " + conf.getParameter("shortport"));
+                conf2.setParameter("command", parent.environment.getGuacamoleHome() + "/stop-vnc " + conf.getParameter("shortport") + " " + conf.getParameter("jobid"));
                 ident = "Stop Remote Desktop " +
                     conf.getParameter("hostname") + " #" + conf.getParameter("shortport");
                 connection = (Connection)new SimpleConnection(ident, ident, conf2,
@@ -246,6 +246,13 @@ public class CreateVNCAuthenticator extends SimpleAuthenticationProvider
             if (words.length > 3)
                 passwd_fn = words[3];
 
+            int jobid = 0;
+            if (words.length > 4)
+                try {
+                    jobid = Integer.parseInt(words[4]);
+                } catch (NumberFormatException e) {
+                    logger.info("Failed to parse Slurm Job id string: " + words[4]);
+                }
             GuacamoleConfiguration conf = new GuacamoleConfiguration();
             conf.setProtocol("vnc");
             conf.setParameter("hostname", host);
@@ -253,6 +260,7 @@ public class CreateVNCAuthenticator extends SimpleAuthenticationProvider
             conf.setParameter("shortport", Integer.toString(portnum));
             conf.setParameter("username", user);
             conf.setParameter("vnc-password-file", passwd_fn);
+            conf.setParameter("jobid", Integer.toString(jobid));
             confs.add(conf);
         }
         return confs;

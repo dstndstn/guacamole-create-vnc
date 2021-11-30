@@ -2,9 +2,37 @@
 
 echo
 echo Stopping Remote Desktop $1 on $(hostname)
-echo
-echo vncserver -kill :$1
-vncserver -kill :$1
+
+jobid=0
+if [ $# -eq 2 ]; then
+    jobid=$2
+    echo "Slurm job id $jobid"
+fi
+#echo "stop-vnc: nargs $# args $@"
+#jobid=$2
+
+if [ $jobid -ne 0 ]; then
+    echo
+    echo
+    echo
+    echo
+    echo "In a moment, a window should now pop up saying that you have been Disconnected."
+    echo
+    echo "Please use the 'Home' button to return to the main menu."
+    echo
+    echo "Then use your browser's 'Reload' to refresh the menu."
+    echo
+    echo
+    sleep 1
+    echo /etc/guacamole/scancel $jobid
+    /etc/guacamole/scancel $jobid
+    # this quits immediately (slurm-adopt-cgroup, killing the job kills the ssh session?)
+else
+    echo
+    echo vncserver -kill :$1
+    vncserver -kill :$1
+fi
+
 sleep 1
 
 echo
