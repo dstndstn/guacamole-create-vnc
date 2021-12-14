@@ -3,13 +3,13 @@
 echo
 echo Stopping Remote Desktop $1 on $(hostname)
 
+base=$(dirname $0)
+
 jobid=0
 if [ $# -eq 2 ]; then
     jobid=$2
     echo "Slurm job id $jobid"
 fi
-#echo "stop-vnc: nargs $# args $@"
-#jobid=$2
 
 if [ $jobid -ne 0 ]; then
     echo
@@ -24,8 +24,8 @@ if [ $jobid -ne 0 ]; then
     echo
     echo
     sleep 1
-    echo /etc/guacamole/scancel $jobid
-    /etc/guacamole/scancel $jobid
+    echo $base/scancel $jobid
+    $base/scancel $jobid
     # this quits immediately (slurm-adopt-cgroup, killing the job kills the ssh session?)
 else
     echo

@@ -7,7 +7,8 @@ import argparse
 import re
 
 def remote():
-    base = '/etc/guacamole'
+    base = os.path.dirname(sys.argv[0])
+
     queue = 'sharedq'
     cmd = [os.path.join(base, 'sinfo'), '-p', queue, '-N', '-o', '%n', '--noheader']
     p = subprocess.run(cmd, stdout=subprocess.PIPE)

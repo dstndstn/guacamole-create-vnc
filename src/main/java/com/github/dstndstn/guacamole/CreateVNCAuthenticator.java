@@ -182,7 +182,7 @@ public class CreateVNCAuthenticator extends SimpleAuthenticationProvider
             conf.setProtocol("vnc");
             conf.setParameter("username", this.username);
             conf.setParameter("password", this.password);
-            ident = "Launch & Connect to a new Remote Desktop";
+            ident = "Launch & Connect to a new Remote Desktop (VNC)";
             connection = (Connection)new DynamicVNCConnection(ident, ident, conf,
                                                               this.interpretTokens);
             connection.setParentIdentifier("ROOT");
@@ -205,7 +205,7 @@ public class CreateVNCAuthenticator extends SimpleAuthenticationProvider
             conf.setParameter("hostname", "mn003");
             conf.setParameter("username", username);
             conf.setParameter("password", this.password);
-            ident = "SSH mn003";
+            ident = "SSH to " + username + "@mn003";
             connection = (Connection)new SimpleConnection(ident, ident, conf,
                                                           this.interpretTokens);
             connection.setParentIdentifier("ROOT");

@@ -22,16 +22,17 @@ def main():
     homedir = os.path.expanduser('~')
     os.chdir(homedir)
 
+    basedir = os.path.dirname(sys.argv[0])
+    print('Using guacamole base directory', basedir)
+
     #/cm/shared/apps/slurm/19.05.8/bin/sbatch
-    cmd = ['/etc/guacamole/sbatch', '-p', 'sharedq', '-J', 'vncserver',
+    cmd = [os.path.join(basedir, 'sbatch'), '-p', 'sharedq', '-J', 'vncserver',
            '--ntasks', '1',
            #'--time', '7-00:00:00',
            '--time', '1-00:00:00',
            '--cpus-per-task', '4',
            '--mem', '8GB',
-           #'--verbose',
-           #/cm/shared/apps/guacamole/bin/run-vnc
-           '/etc/guacamole/run-vnc']
+           os.path.join(basedir, 'run-vnc')]
     print('Running:', ' '.join(cmd))
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                          universal_newlines=True)

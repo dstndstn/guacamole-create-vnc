@@ -1,4 +1,5 @@
 #! /bin/bash
+base=$(dirname $0)
 user=$1
 shift
-sudo -n --set-home --user=$user /etc/guacamole/launch-vnc
+sudo -n --set-home --user=$user $base/launch-vnc

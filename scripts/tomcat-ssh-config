@@ -1,0 +1,7 @@
+Host *
+UserKnownHostsFile /etc/guacamole/tomcat/ssh-known-hosts
+StrictHostKeyChecking no
+PreferredAuthentications publickey
+ControlMaster auto
+ControlPath  /etc/guacamole/tomcat/ssh-sockets/%r@%h-%p
+ControlPersist 600
