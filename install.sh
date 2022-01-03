@@ -6,18 +6,18 @@
 cd $(dirname $0)
 pwd
 
-GUACAMOLE_HOME=/cm/shared/guacamole
+GUACAMOLE_HOME=/cm/shared/apps/guacamole
 
 mkdir -p ${GUACAMOLE_HOME}
 mkdir -p ${GUACAMOLE_HOME}/extensions/
 
 mkdir -p ${GUACAMOLE_HOME}/tomcat/ssh-sockets/
-mkdir -p ${GUACAMOLE_HOME}/create-vnc
+mkdir -p ${GUACAMOLE_HOME}/guacamole
 
 cat scripts/tomcat-ssh-config | sed s+/etc/guacamole+${GUACAMOLE_HOME}+g > ${GUACAMOLE_HOME}/tomcat/ssh_config
 touch ${GUACAMOLE_HOME}/tomcat/ssh-known-hosts
 
-scp cn001:/cm/shared/guacamole/create-vnc/id_createvnc_computenode ${GUACAMOLE_HOME}/tomcat/
+#scp cn001:/cm/shared/guacamole/create-vnc/id_createvnc_computenode ${GUACAMOLE_HOME}/tomcat/
 
 chown -R tomcat ${GUACAMOLE_HOME}/tomcat
 
@@ -36,7 +36,8 @@ done
 
 # Compute node commands
 for x in list-vnc run-vnc stop-vnc; do
-    scp scripts/$x cn001:${GUACAMOLE_HOME}/
+    #    scp scripts/$x cn001:${GUACAMOLE_HOME}/
+    cp scripts/$x ${GUACAMOLE_HOME}/
 done
 
 # Symlinks for Slurm commands
@@ -46,7 +47,9 @@ done
 
 # Symlinks for Slurm commands, on the compute nodes
 for x in scancel; do
-    ssh cn001 ln -s $(which $x) ${GUACAMOLE_HOME}/
+    #ssh cn001 ln -s $(which $x) ${GUACAMOLE_HOME}/
+    ln -s $(which $x) ${GUACAMOLE_HOME}/
 done
 
 touch ${GUACAMOLE_HOME}/guacamole.properties
+

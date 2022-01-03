@@ -21,8 +21,8 @@ def remote():
     for host in nodes:
         cmd = ['ssh',
                '-F', os.path.join(base, 'tomcat/ssh_config'),
-               '-i', os.path.join(base, 'tomcat/id_createvnc_computenode'),
-               'create-vnc@'+host,
+               '-i', os.path.join(base, 'tomcat/id_guacamole_computenode'),
+               'guacamole@'+host,
                os.path.join(base, 'list-vnc')]
         print(' '.join(cmd))
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
