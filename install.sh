@@ -42,6 +42,7 @@ done
 
 # Symlinks for Slurm commands
 for x in sbatch sinfo; do
+    echo ln -s $(which $x) ${GUACAMOLE_HOME}/
     ln -s $(which $x) ${GUACAMOLE_HOME}/
 done
 

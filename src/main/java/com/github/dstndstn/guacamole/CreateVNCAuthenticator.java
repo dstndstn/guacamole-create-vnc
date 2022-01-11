@@ -49,6 +49,7 @@ public class CreateVNCAuthenticator extends SimpleAuthenticationProvider
         this.cachedConnTime = 0L;
         this.logger.info("CreateVNCAuthenticator() constructor");
         this.environment = (Environment)new LocalEnvironment();
+        //this.environment = (Environment)LocalEnvironment.getInstance();
     }
     
     public String getIdentifier() {

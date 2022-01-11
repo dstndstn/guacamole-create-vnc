@@ -24,6 +24,7 @@ public class ReadPasswordConnection extends SimpleConnection
         super(name, identifier, config, interpretTokens);
         this.logger = LoggerFactory.getLogger((Class)ReadPasswordConnection.class);
         this.environment = (Environment)new LocalEnvironment();
+        //this.environment = (Environment)LocalEnvironment.getInstance();
     }
 
     public GuacamoleTunnel connect(final GuacamoleClientInformation info, final Map<String, String> tokens) throws GuacamoleException {
