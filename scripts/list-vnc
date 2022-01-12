@@ -61,6 +61,8 @@ def main():
         if not cmd[0] in ['/usr/bin/Xvnc', '/usr/bin/Xtigervnc']:
             continue
 
+        #print('Found VNC command:', cmd)
+
         port = cmd[1]
         if not port.startswith(':'):
             continue
@@ -74,13 +76,15 @@ def main():
             if a1 == '-rfbauth':
                 # Check for .txt file (as created by run-vnc)
                 txtfn = a2 + '.txt'
-                if os.path.exists(txtfn):
-                    passwd_fn = txtfn
-                    m = rex.match(os.path.basename(txtfn))
-                    if m is not None:
-                        print('Filename matched RE')
-                        jobid = int(m.group('jobid'))
-                    break
+                #print('Checking for text password file', txtfn)
+                # Generally, we won't have permissions to see into user's directory
+                #if os.path.exists(txtfn):
+                passwd_fn = txtfn
+                m = rex.match(os.path.basename(txtfn))
+                if m is not None:
+                    print('Filename matched RE')
+                    jobid = int(m.group('jobid'))
+                break
 
         
         user = proc.username()
