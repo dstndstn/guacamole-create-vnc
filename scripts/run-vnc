@@ -1,13 +1,32 @@
 #! /bin/bash
 
 echo "Starting a new VNC remote desktop"
+
+set
+
+# Check for existing ~/.config/lxsession and ~/.config/pcmanfm directories, and if they don't exist,
+# populate them with defaults from /cm/shared/apps/guacamole/default-config
+# to set desktop background image.
+if [ ! -d ~/.config/lxsession ]; then
+    mkdir -p ~/.config/lxsession
+    cp -r $GUACAMOLE_DIR/default-config/lxsession/* ~/.config/lxsession
+fi
+if [ ! -d ~/.config/pcmanfm ]; then
+    mkdir -p ~/.config/pcmanfm
+    cp -r $GUACAMOLE_DIR/default-config/pcmanfm/* ~/.config/pcmanfm
+fi
+
 password=$(cat /dev/urandom | tr -dc '[:alpha:]' | head -c 10)
 txtfn=~/.vnc/passwd-guac-$SLURM_JOB_ID.txt
 echo $password > $txtfn
 echo
 echo "Saving VNC password in $txtfn"
 echo $password | /usr/bin/tigervncpasswd -f > ~/.vnc/passwd-guac-$SLURM_JOB_ID
-/usr/bin/tigervncserver -localhost no -fg -rfbauth ~/.vnc/passwd-guac-$SLURM_JOB_ID
+
+# tigervnc-standalone-server 1.7.0
+#/usr/bin/tigervncserver -localhost no -fg -rfbauth ~/.vnc/passwd-guac-$SLURM_JOB_ID
+# tigervncserver 1.10.1 -- "-localhost no" seems to be the default now.
+/usr/bin/tigervncserver -fg -rfbauth ~/.vnc/passwd-guac-$SLURM_JOB_ID
 
 # clean up passwd files
 rm $txtfn

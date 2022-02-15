@@ -84,7 +84,7 @@ def main():
                 if m is not None:
                     print('Filename matched RE')
                     jobid = int(m.group('jobid'))
-                break
+                    break
 
         
         user = proc.username()

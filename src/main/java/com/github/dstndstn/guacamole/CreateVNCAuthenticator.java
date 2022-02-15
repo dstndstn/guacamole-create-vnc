@@ -151,6 +151,14 @@ public class CreateVNCAuthenticator extends SimpleAuthenticationProvider
                 ident = "Connect to Remote Desktop on " +
                     conf.getParameter("hostname") + " #" + conf.getParameter("shortport");
                 String pwfn = conf.getParameter("vnc-password-file");
+                // SFTP for file up/download
+                conf.setParameter("enable-sftp", "true");
+                // assume home directories are shared; sftp to the localhost running guacamole
+                conf.setParameter("sftp-hostname", "localhost");
+                conf.setParameter("sftp-username", this.username);
+                conf.setParameter("sftp-password", this.password);
+                // ASSUME home directory
+                conf.setParameter("sftp-root-directory", "/home/" + this.username);
                 if (pwfn != null) {
                     connection = (Connection)new ReadPasswordConnection(ident, ident, conf,
                                                                         this.interpretTokens);
@@ -179,6 +187,14 @@ public class CreateVNCAuthenticator extends SimpleAuthenticationProvider
             conf.setProtocol("vnc");
             conf.setParameter("username", this.username);
             conf.setParameter("password", this.password);
+            // SFTP for file up/download
+            conf.setParameter("enable-sftp", "true");
+            // assume home directories are shared; sftp to the localhost running guacamole
+            conf.setParameter("sftp-hostname", "localhost");
+            conf.setParameter("sftp-username", this.username);
+            conf.setParameter("sftp-password", this.password);
+            // ASSUME home directory
+            conf.setParameter("sftp-root-directory", "/home/" + this.username);
             ident = "Launch & Connect to a new Remote Desktop (VNC)";
             connection = (Connection)new DynamicVNCConnection(ident, ident, conf,
                                                               this.interpretTokens);
