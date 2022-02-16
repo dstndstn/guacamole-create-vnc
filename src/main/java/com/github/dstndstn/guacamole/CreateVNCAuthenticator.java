@@ -195,9 +195,12 @@ public class CreateVNCAuthenticator extends SimpleAuthenticationProvider
             conf.setParameter("sftp-password", this.password);
             // ASSUME home directory
             conf.setParameter("sftp-root-directory", "/home/" + this.username);
-            ident = "Launch & Connect to a new Remote Desktop (VNC)";
+            //ident = "Launch & Connect to a new Remote Desktop (VNC)";
+            ident = "Connect to Remote Desktop (VNC), launching one if necessary";
+            //"Launch & Connect to a new Remote Desktop (VNC)";
             connection = (Connection)new DynamicVNCConnection(ident, ident, conf,
-                                                              this.interpretTokens);
+                                                              this.interpretTokens,
+                                                              parent);
             connection.setParentIdentifier("ROOT");
             connections.put(ident, connection);
 
