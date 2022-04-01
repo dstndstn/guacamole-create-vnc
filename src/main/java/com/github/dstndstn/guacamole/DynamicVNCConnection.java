@@ -64,7 +64,7 @@ public class DynamicVNCConnection extends ReadPasswordConnection /*SimpleConnect
             int port = -1;
             String passwdfn = null;
             try {
-                final Process process = Runtime.getRuntime().exec(this.environment.getGuacamoleHome() + "/launch-vnc-for " + username);
+                final Process process = Runtime.getRuntime().exec(this.environment.getGuacamoleHome() + "/bin/launch-vnc-for " + username);
                 final BufferedReader r = new BufferedReader(new InputStreamReader(process.getInputStream()));
                 String line = null;
                 while ((line = r.readLine()) != null) {

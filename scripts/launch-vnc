@@ -26,16 +26,19 @@ def main():
     print('Using guacamole base directory', basedir)
 
     #/cm/shared/apps/slurm/19.05.8/bin/sbatch
-    cmd = [os.path.join(basedir, 'sbatch'), '-p', 'sharedq', '-J', 'vncserver',
+    env = os.environ.copy()
+    env['GUACAMOLE_DIR'] = basedir
+    cmd = [os.path.join(basedir, 'sbatch'),
+           '-p', 'sharedq',
+           '-J', 'vncserver',
            '--ntasks', '1',
-           #'--time', '7-00:00:00',
-           '--time', '1-00:00:00',
+           '--time', '7-00:00:00',
            '--cpus-per-task', '4',
-           '--mem', '8GB',
+           '--mem', '16GB',
            os.path.join(basedir, 'run-vnc')]
     print('Running:', ' '.join(cmd))
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                         universal_newlines=True)
+                         universal_newlines=True, env=env)
     s,e = p.communicate()
     jobid = None
     for line in e.split('\n'):

@@ -174,7 +174,7 @@ public class CreateVNCAuthenticator extends SimpleAuthenticationProvider
                 conf2.setParameter("hostname", conf.getParameter("hostname"));
                 conf2.setParameter("username", this.username);
                 conf2.setParameter("password", this.password);
-                conf2.setParameter("command", parent.environment.getGuacamoleHome() + "/stop-vnc " + conf.getParameter("shortport") + " " + conf.getParameter("jobid"));
+                conf2.setParameter("command", parent.environment.getGuacamoleHome() + "/bin/stop-vnc " + conf.getParameter("shortport") + " " + conf.getParameter("jobid"));
                 ident = "Stop Remote Desktop " +
                     conf.getParameter("hostname") + " #" + conf.getParameter("shortport");
                 connection = (Connection)new SimpleConnection(ident, ident, conf2,
@@ -209,7 +209,7 @@ public class CreateVNCAuthenticator extends SimpleAuthenticationProvider
             conf.setParameter("hostname", "localhost");
             conf.setParameter("username", username);
             conf.setParameter("password", this.password);
-            conf.setParameter("command", parent.environment.getGuacamoleHome() + "/launch-vnc");
+            conf.setParameter("command", parent.environment.getGuacamoleHome() + "/bin/launch-vnc");
             ident = "Launch a new Remote Desktop (VNC)";
             connection = (Connection)new SimpleConnection(ident, ident, conf,
                                                           this.interpretTokens);
@@ -239,7 +239,7 @@ public class CreateVNCAuthenticator extends SimpleAuthenticationProvider
         Vector<GuacamoleConfiguration> confs = new Vector<GuacamoleConfiguration>();
 
         final Process process = Runtime.getRuntime().exec(env.getGuacamoleHome() +
-                                                          "/list-vnc --remote");
+                                                          "/bin/list-vnc --remote");
         final BufferedReader r = new BufferedReader(new InputStreamReader(process.getInputStream()));
         String line = null;
         while ((line = r.readLine()) != null) {
