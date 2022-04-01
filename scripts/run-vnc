@@ -16,6 +16,8 @@ if [ ! -d ~/.config/pcmanfm ]; then
     cp -r $GUACAMOLE_DIR/default-config/pcmanfm/* ~/.config/pcmanfm
 fi
 
+# Create VNC password file, plus text equivalent
+mkdir -p ~/.vnc
 password=$(cat /dev/urandom | tr -dc '[:alpha:]' | head -c 10)
 txtfn=~/.vnc/passwd-guac-$SLURM_JOB_ID.txt
 echo $password > $txtfn

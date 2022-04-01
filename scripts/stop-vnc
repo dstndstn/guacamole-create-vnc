@@ -3,7 +3,7 @@
 echo
 echo Stopping Remote Desktop $1 on $(hostname)
 
-base=$(dirname $0)
+bindir=$(dirname $0)
 
 jobid=0
 if [ $# -eq 2 ]; then
@@ -24,8 +24,8 @@ if [ $jobid -ne 0 ]; then
     echo
     echo
     sleep 1
-    echo $base/scancel $jobid
-    $base/scancel $jobid
+    echo $bindir/scancel $jobid
+    $bindir/scancel $jobid
     # this quits immediately (slurm-adopt-cgroup, killing the job kills the ssh session?)
 else
     echo
