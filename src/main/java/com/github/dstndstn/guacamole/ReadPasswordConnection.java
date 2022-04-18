@@ -47,7 +47,7 @@ public class ReadPasswordConnection extends SimpleConnection
     protected String readPasswordFile(final String username, final String filename) {
         //this.logger.info("readPasswordFile: " + username + ", " + filename);
         try {
-            final Process process = Runtime.getRuntime().exec(this.environment.getGuacamoleHome() + "/read-vnc-passwd " + username + " " + filename);
+            final Process process = Runtime.getRuntime().exec(this.environment.getGuacamoleHome() + "/bin/read-vnc-passwd " + username + " " + filename);
             final BufferedReader r = new BufferedReader(new InputStreamReader(process.getInputStream()));
             String line = null;
             while ((line = r.readLine()) != null) {

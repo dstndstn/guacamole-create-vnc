@@ -22,7 +22,7 @@ def main():
 
     env = os.environ.copy()
     env['GUACAMOLE_DIR'] = basedir
-    cmd = [os.path.join(basedir, 'sbatch'),
+    cmd = [os.path.join(basedir, 'bin', 'sbatch'),
            '-p', 'sharedq',
            '-J', 'vncserver',
            '--ntasks', '1',
