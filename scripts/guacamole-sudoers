@@ -1,4 +1,4 @@
-Cmnd_Alias GUAC = /etc/guacamole/list-vnc
-Cmnd_Alias TOMCAT = /etc/guacamole/read-vnc-passwd, /etc/guacamole/launch-vnc
+Cmnd_Alias GUAC = /etc/guacamole/bin/list-vnc
+Cmnd_Alias TOMCAT = /etc/guacamole/bin/read-vnc-passwd, /etc/guacamole/bin/launch-vnc
 create-vnc ALL=(ALL:ALL) NOPASSWD:SETENV:GUAC
 tomcat ALL=(ALL:ALL) NOPASSWD:SETENV:TOMCAT

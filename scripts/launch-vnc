@@ -1,12 +1,5 @@
 #! /usr/bin/python3
 
-'''
-#! /bin/bash
-#/cm/shared/apps/slurm/19.05.8/bin/sbatch
-cd
-/etc/guacamole/sbatch -p sharedq -J vncserver --ntasks 1 --time 7-00:00:00 --cpus-per-task 4 --mem 8GB --verbose /cm/shared/apps/guacamole/bin/run-vnc
-'''
-
 import os
 import sys
 import subprocess
@@ -18,24 +11,28 @@ def main():
     print()
     print('Launching a Remote Desktop session for you...')
     print()
-    # cd ~ so that the slurm log file goes somewhere we have write permission!
+    # "cd ~" so that the slurm log file goes somewhere we have write permission!
     homedir = os.path.expanduser('~')
     os.chdir(homedir)
 
     basedir = os.path.dirname(sys.argv[0])
+    # Assume "launch-vnc" is in "$GUACAMOLE_DIR/bin"
+    basedir = os.path.dirname(basedir)
     print('Using guacamole base directory', basedir)
 
-    #/cm/shared/apps/slurm/19.05.8/bin/sbatch
-    cmd = [os.path.join(basedir, 'sbatch'), '-p', 'sharedq', '-J', 'vncserver',
+    env = os.environ.copy()
+    env['GUACAMOLE_DIR'] = basedir
+    cmd = [os.path.join(basedir, 'bin', 'sbatch'),
+           '-p', 'sharedq',
+           '-J', 'vncserver',
            '--ntasks', '1',
-           #'--time', '7-00:00:00',
-           '--time', '1-00:00:00',
+           '--time', '7-00:00:00',
            '--cpus-per-task', '4',
-           '--mem', '8GB',
-           os.path.join(basedir, 'run-vnc')]
+           '--mem', '16GB',
+           os.path.join(basedir, 'bin', 'run-vnc')]
     print('Running:', ' '.join(cmd))
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                         universal_newlines=True)
+                         universal_newlines=True, env=env)
     s,e = p.communicate()
     jobid = None
     for line in e.split('\n'):
@@ -123,6 +120,3 @@ def main():
     
 if __name__ == '__main__':
     sys.exit(main())
-
-
-

@@ -1,0 +1,3 @@
+@lxpanel --profile LXDE
+@pcmanfm --desktop --profile LXDE --set-wallpaper /cm/shared/apps/guacamole/pi-exterior.jpg --wallpaper-mode screen
+@xscreensaver -no-splash
