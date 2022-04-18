@@ -36,8 +36,8 @@ public class DynamicVNCConnection extends ReadPasswordConnection /*SimpleConnect
     public GuacamoleTunnel connect(final GuacamoleClientInformation info, final Map<String, String> tokens) throws GuacamoleException {
         this.logger.info("DynamicVNCConnection.connect()");
         final GuacamoleConfiguration conf = this.getFullConfiguration();
-        this.logger.info("  full config: " + conf.getParameters().toString());
-        this.logger.info("  config: " + this.getConfiguration().getParameters().toString());
+        //this.logger.info("  full config: " + conf.getParameters().toString());
+        //this.logger.info("  config: " + this.getConfiguration().getParameters().toString());
         final String username = conf.getParameter("username");
 
         // Check for an existing VNC session.  If none found, launch a new one.
