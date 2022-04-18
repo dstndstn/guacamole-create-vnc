@@ -33,7 +33,7 @@ cp target/guacamole-create-vnc-1.4.0.jar ${GUACAMOLE_HOME}/extensions/
 service tomcat9 restart
 
 # Local commands
-for x in launch-vnc launch-vnc-for list-vnc list-vnc-for read-vnc-passwd start-vnc-for stop-vnc; do
+for x in launch-vnc launch-vnc-for list-vnc read-vnc-passwd stop-vnc; do
     cp scripts/$x ${GUACAMOLE_HOME}/bin
 done
 
