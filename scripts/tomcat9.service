@@ -10,6 +10,7 @@ After=network.target
 [Service]
 
 # Configuration
+Environment="GUACAMOLE_HOME=/cm/shared/apps/guacamole"
 Environment="CATALINA_HOME=/usr/share/tomcat9"
 Environment="CATALINA_BASE=/var/lib/tomcat9"
 Environment="CATALINA_TMPDIR=/tmp"
@@ -40,7 +41,7 @@ CacheDirectoryMode=750
 ProtectSystem=strict
 ReadWritePaths=/etc/tomcat9/Catalina/
 ReadWritePaths=/var/lib/tomcat9/webapps/
-ReadWritePaths=/etc/guacamole/create-vnc/
+ReadWritePaths=/etc/guacamole/guacamole/
 ReadWritePaths=/etc/guacamole/tomcat/ssh-sockets/
 ReadWritePaths=/home/
 

@@ -47,8 +47,9 @@ public class CreateVNCAuthenticator extends SimpleAuthenticationProvider
     public CreateVNCAuthenticator() throws GuacamoleException {
         this.logger = LoggerFactory.getLogger((Class)CreateVNCAuthenticator.class);
         this.cachedConnTime = 0L;
-        this.logger.info("CreateVNCAuthenticator() constructor");
+        //this.logger.info("CreateVNCAuthenticator() constructor");
         this.environment = (Environment)new LocalEnvironment();
+        //this.environment = (Environment)LocalEnvironment.getInstance();
     }
     
     public String getIdentifier() {
@@ -56,20 +57,18 @@ public class CreateVNCAuthenticator extends SimpleAuthenticationProvider
     }
 
     public Map<String, GuacamoleConfiguration> getAuthorizedConfigurations(final Credentials cred) throws GuacamoleException {
-        if (!this.pamCheckCredentials(cred)) {
+        if (!this.pamCheckCredentials(cred))
             return null;
-        }
         return new HashMap<String, GuacamoleConfiguration>();
     }
 
     private boolean pamCheckCredentials(final Credentials cred) {
         try {
             final String serviceName = "guacamole";
-            this.logger.info("Checking PAM credentials for " + cred.getUsername());
+            this.logger.info("Checking credentials for " + cred.getUsername() + " using PAM");
             final UnixUser user = new PAM(serviceName).authenticate(cred.getUsername(), cred.getPassword());
-            if (user != null) {
+            if (user != null)
                 return true;
-            }
         }
         catch (PAMException ex) {}
         return false;
@@ -77,20 +76,19 @@ public class CreateVNCAuthenticator extends SimpleAuthenticationProvider
 
     public UserContext getUserContext(final AuthenticatedUser authenticatedUser) throws GuacamoleException {
         final Credentials cred = authenticatedUser.getCredentials();
-        if (!this.pamCheckCredentials(cred)) {
+        if (!this.pamCheckCredentials(cred))
             return null;
-        }
         return (UserContext)new CreateVNCUserContext(this, authenticatedUser.getIdentifier(), cred.getPassword());
     }
 
     public Vector<GuacamoleConfiguration> getSessions() {
         final long now = System.currentTimeMillis();
-        this.logger.info("getSessions(): cached " + (now - cachedConnTime) + " ms ago");
+        //this.logger.info("getSessions(): cached " + (now - cachedConnTime) + " ms ago");
         if (now - cachedConnTime < 2000L && cachedConn != null) {
-            this.logger.info("cache hit!");
+            //this.logger.info("cache hit!");
             return cachedConn;
         }
-        this.logger.info("cache miss -- listing all VNC sessions");
+        this.logger.info("Listing all VNC sessions (list-vnc --remote)");
         try {
             Vector<GuacamoleConfiguration> allconfigs = CreateVNCAuthenticator.listVncSessions(environment);
             for (int i=0; i<allconfigs.size(); i++) {
@@ -140,7 +138,6 @@ public class CreateVNCAuthenticator extends SimpleAuthenticationProvider
             return (AuthenticationProvider)this.parent;
         }
 
-        
         public Directory<Connection> getConnectionDirectory() throws GuacamoleException {
             Vector<GuacamoleConfiguration> configs = parent.getSessions();
             Connection connection = null;
@@ -155,6 +152,14 @@ public class CreateVNCAuthenticator extends SimpleAuthenticationProvider
                     conf.getParameter("hostname") + " #" + conf.getParameter("shortport");
                 String pwfn = conf.getParameter("vnc-password-file");
                 this.logger.info("Option \"" + ident + "\": password file is " + pwfn);
+                // SFTP for file up/download
+                conf.setParameter("enable-sftp", "true");
+                // assume home directories are shared; sftp to the localhost running guacamole
+                conf.setParameter("sftp-hostname", "localhost");
+                conf.setParameter("sftp-username", this.username);
+                conf.setParameter("sftp-password", this.password);
+                // ASSUME home directory
+                conf.setParameter("sftp-root-directory", "/home/" + this.username);
                 if (pwfn != null) {
                     connection = (Connection)new ReadPasswordConnection(ident, ident, conf,
                                                                         this.interpretTokens);
@@ -170,8 +175,7 @@ public class CreateVNCAuthenticator extends SimpleAuthenticationProvider
                 conf2.setParameter("hostname", conf.getParameter("hostname"));
                 conf2.setParameter("username", this.username);
                 conf2.setParameter("password", this.password);
-                //conf2.setParameter("command", "/bin/bash --norc -i " + parent.environment.getGuacamoleHome() + "/stop-vnc " + conf.getParameter("shortport"));
-                conf2.setParameter("command", parent.environment.getGuacamoleHome() + "/stop-vnc " + conf.getParameter("shortport") + " " + conf.getParameter("jobid"));
+                conf2.setParameter("command", parent.environment.getGuacamoleHome() + "/bin/stop-vnc " + conf.getParameter("shortport") + " " + conf.getParameter("jobid"));
                 ident = "Stop Remote Desktop " +
                     conf.getParameter("hostname") + " #" + conf.getParameter("shortport");
                 connection = (Connection)new SimpleConnection(ident, ident, conf2,
@@ -184,9 +188,20 @@ public class CreateVNCAuthenticator extends SimpleAuthenticationProvider
             conf.setProtocol("vnc");
             conf.setParameter("username", this.username);
             conf.setParameter("password", this.password);
-            ident = "Launch & Connect to a new Remote Desktop (VNC)";
+            // SFTP for file up/download
+            conf.setParameter("enable-sftp", "true");
+            // assume home directories are shared; sftp to the localhost running guacamole
+            conf.setParameter("sftp-hostname", "localhost");
+            conf.setParameter("sftp-username", this.username);
+            conf.setParameter("sftp-password", this.password);
+            // ASSUME home directory
+            conf.setParameter("sftp-root-directory", "/home/" + this.username);
+            //ident = "Launch & Connect to a new Remote Desktop (VNC)";
+            ident = "Connect to Remote Desktop (VNC), launching one if necessary";
+            //"Launch & Connect to a new Remote Desktop (VNC)";
             connection = (Connection)new DynamicVNCConnection(ident, ident, conf,
-                                                              this.interpretTokens);
+                                                              this.interpretTokens,
+                                                              parent);
             connection.setParentIdentifier("ROOT");
             connections.put(ident, connection);
 
@@ -195,7 +210,7 @@ public class CreateVNCAuthenticator extends SimpleAuthenticationProvider
             conf.setParameter("hostname", "localhost");
             conf.setParameter("username", username);
             conf.setParameter("password", this.password);
-            conf.setParameter("command", parent.environment.getGuacamoleHome() + "/launch-vnc");
+            conf.setParameter("command", parent.environment.getGuacamoleHome() + "/bin/launch-vnc");
             ident = "Launch a new Remote Desktop (VNC)";
             connection = (Connection)new SimpleConnection(ident, ident, conf,
                                                           this.interpretTokens);
@@ -223,9 +238,9 @@ public class CreateVNCAuthenticator extends SimpleAuthenticationProvider
     throws IOException {
         Logger logger = LoggerFactory.getLogger((Class)CreateVNCAuthenticator.class);
         Vector<GuacamoleConfiguration> confs = new Vector<GuacamoleConfiguration>();
-        
+
         final Process process = Runtime.getRuntime().exec(env.getGuacamoleHome() +
-                                                          "/list-vnc --remote");
+                                                          "/bin/list-vnc --remote");
         final BufferedReader r = new BufferedReader(new InputStreamReader(process.getInputStream()));
         String line = null;
         while ((line = r.readLine()) != null) {

@@ -24,6 +24,7 @@ public class ReadPasswordConnection extends SimpleConnection
         super(name, identifier, config, interpretTokens);
         this.logger = LoggerFactory.getLogger((Class)ReadPasswordConnection.class);
         this.environment = (Environment)new LocalEnvironment();
+        //this.environment = (Environment)LocalEnvironment.getInstance();
     }
 
     public GuacamoleTunnel connect(final GuacamoleClientInformation info, final Map<String, String> tokens) throws GuacamoleException {
@@ -33,6 +34,7 @@ public class ReadPasswordConnection extends SimpleConnection
         final String username = conf.getParameter("username");
 
         final String passwd_fn = conf.getParameter("vnc-password-file");
+        this.logger.info("Reading user's VNC password file: " + username + ", " + passwd_fn);
         String passwd = readPasswordFile(username, passwd_fn);
         if (passwd != null) {
             this.logger.info("Successfully read VNC password from " + passwd_fn);
@@ -48,7 +50,7 @@ public class ReadPasswordConnection extends SimpleConnection
     protected String readPasswordFile(final String username, final String filename) {
         //this.logger.info("readPasswordFile: " + username + ", " + filename);
         try {
-            final Process process = Runtime.getRuntime().exec(this.environment.getGuacamoleHome() + "/read-vnc-passwd " + username + " " + filename);
+            final Process process = Runtime.getRuntime().exec(this.environment.getGuacamoleHome() + "/bin/read-vnc-passwd " + username + " " + filename);
             final BufferedReader r = new BufferedReader(new InputStreamReader(process.getInputStream()));
             String line = null;
             while ((line = r.readLine()) != null) {

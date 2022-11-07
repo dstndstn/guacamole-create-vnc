@@ -13,14 +13,16 @@ Run
 ```
 mvn package
 ```
-to create the output file ``target/guacamole-create-vnc-1.3.0.jar``.
+to create the output file ``target/guacamole-create-vnc-1.4.0.jar``.
 
-Copy that file into place, along with support scripts
+Copy that file into place:
 ```
-sudo cp target/guacamole-create-vnc-1.3.0.jar /etc/guacamole/extensions
-sudo cp scripts/update-vnc-list /etc/guacamole
-sudo cp scripts/start-vnc.py /etc/guacamole
+sudo cp target/guacamole-create-vnc-1.4.0.jar /etc/guacamole/extensions
 ```
+
+A number of other files must be copied into place as well; see the
+file `install.sh` for details about how we have it installed at
+Perimeter Institute.
 
 License
 -------
