@@ -65,6 +65,7 @@ public class CreateVNCAuthenticator extends SimpleAuthenticationProvider
     private boolean pamCheckCredentials(final Credentials cred) {
         try {
             final String serviceName = "guacamole";
+            this.logger.info("Checking PAM credentials for " + cred.getUsername());
             final UnixUser user = new PAM(serviceName).authenticate(cred.getUsername(), cred.getPassword());
             if (user != null) {
                 return true;
@@ -153,6 +154,7 @@ public class CreateVNCAuthenticator extends SimpleAuthenticationProvider
                 ident = "Connect to Remote Desktop on " +
                     conf.getParameter("hostname") + " #" + conf.getParameter("shortport");
                 String pwfn = conf.getParameter("vnc-password-file");
+                this.logger.info("Option \"" + ident + "\": password file is " + pwfn);
                 if (pwfn != null) {
                     connection = (Connection)new ReadPasswordConnection(ident, ident, conf,
                                                                         this.interpretTokens);

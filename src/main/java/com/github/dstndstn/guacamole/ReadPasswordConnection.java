@@ -35,8 +35,11 @@ public class ReadPasswordConnection extends SimpleConnection
         final String passwd_fn = conf.getParameter("vnc-password-file");
         String passwd = readPasswordFile(username, passwd_fn);
         if (passwd != null) {
+            this.logger.info("Successfully read VNC password from " + passwd_fn);
             conf.setParameter("password", passwd);
             //logger.info("Set VNC password: " + passwd);
+        } else {
+            this.logger.info("Failed to read VNC password from " + passwd_fn);
         }
         //this.logger.info("Connecting with config: " + conf.getParameters().toString());
         return super.connect(info, (Map)tokens);
