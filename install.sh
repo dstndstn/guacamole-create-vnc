@@ -2,7 +2,6 @@
 
 # assume "mvn package" has already been run!
 
-
 cd $(dirname $0)
 pwd
 
@@ -29,7 +28,7 @@ systemctl daemon-reload
 #cat scripts/guacamole-sudoers | sed s+/etc/guacamole+${GUACAMOLE_HOME}+g > /etc/sudoers.d/guacamole
 # Note that this must also be installed on the target machines that will run the remote desktops
 
-cp target/guacamole-create-vnc-1.4.0.jar ${GUACAMOLE_HOME}/extensions/
+cp target/guacamole-create-vnc-1.5.3.jar ${GUACAMOLE_HOME}/extensions/
 service tomcat9 restart
 
 # Local commands
