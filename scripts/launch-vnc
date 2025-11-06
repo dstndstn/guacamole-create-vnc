@@ -66,37 +66,40 @@ def main():
         print('.', flush=True, end='')
         time.sleep(2.)
     print()
-    # "New 'cn002:29 (dlang)' desktop is cn002:29"
     print('Remote Desktop job started - looking for desktop number')
-    rex = re.compile('New .* desktop is (?P<host>\w*):(?P<port>\d*)')
+
+    # This is fragile -- we look for the vnc server to print out its hostname and port!
+
+    # "New 'cn002:29 (dlang)' desktop is cn002:29"
+    rex1 = re.compile('New .* desktop is (?P<host>\w*):(?P<port>\d*)')
 
     # "New 'cn002.cm.cluster:29 (dlang)' desktop at :29 on machine cn002.cm.cluster"
     rex2 = re.compile('New .* desktop at :(?P<port>\d*) on machine (?P<host>\w*)')
 
+    # "New Xtigervnc server 'cn021:3 (dlang)' on port 5903 for display :3."
+    rex3 = re.compile('New .* server \'(?P<host>\w*):(?P<port>\d*).*')
+
     # "Saving VNC password in /home/dlang/.vnc/passwd-guac-$SLURM_JOB_ID.txt"
 
     foundit = False
+    foundpassword = False
     for i in range(60):
         lines = open(jobfn).read().split('\n')
         for line in lines:
-            m = rex.match(line)
-            if m is not None:
-                print()
-                print('VNCHost %s' % m.group('host'))
-                print('VNCPort %s' % m.group('port'))
-                foundit = True
-                break
-            m = rex2.match(line)
-            if m is not None:
-                print()
-                print('VNCHost %s' % m.group('host'))
-                print('VNCPort %s' % m.group('port'))
-                foundit = True
-                break
+            for rex in [rex1, rex2, rex3]:
+                m = rex.match(line)
+                if m is not None:
+                    print()
+                    print('VNCHost %s' % m.group('host'))
+                    print('VNCPort %s' % m.group('port'))
+                    foundit = True
+                    break
             if line.startswith('Saving VNC password in'):
                 words = line.split()
                 fn = words[-1]
-                print('VNCPasswordFile %s' % fn)
+                if not foundpassword:
+                    print('VNCPasswordFile %s' % fn)
+                    foundpassword = True
         if foundit:
             break
         time.sleep(1.)
